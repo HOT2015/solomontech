@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 class Candidate:
     """지원자 정보를 관리하는 클래스"""
     
-    def __init__(self, name: str, email: str = '', phone: str = '', created_at: str = None, test_deadline: str = None, access_date: str = None, test_duration: int = 10):
+    def __init__(self, name: str, email: str = '', phone: str = '', created_at: str = None, test_deadline: str = None, access_date: str = None, test_duration: int = 10, selected_questions: List[str] = None):
         self.id = str(uuid.uuid4())  # 고유 ID 생성
         self.name = name
         self.email = email or ''
@@ -15,6 +15,7 @@ class Candidate:
         self.test_deadline = test_deadline
         self.access_date = access_date  # YYYY-MM-DD
         self.test_duration = test_duration  # 분 단위, 기본 10분
+        self.selected_questions = selected_questions or []  # 출제할 문제 ID 목록
     
     def to_dict(self) -> Dict:
         """지원자 정보를 딕셔너리로 변환"""
@@ -26,7 +27,8 @@ class Candidate:
             "created_at": self.created_at,
             "test_deadline": self.test_deadline,
             "access_date": self.access_date,
-            "test_duration": self.test_duration
+            "test_duration": self.test_duration,
+            "selected_questions": self.selected_questions
         }
     
     @classmethod
@@ -39,7 +41,8 @@ class Candidate:
             data.get("created_at"),
             data.get("test_deadline"),
             data.get("access_date"),
-            data.get("test_duration", 10)
+            data.get("test_duration", 10),
+            data.get("selected_questions", [])
         )
         # id 필드를 명시적으로 설정 (JSON에서 로드할 때 필요)
         candidate.id = data["id"]
@@ -294,4 +297,55 @@ class DataManager:
             return current_date > deadline_date
         except (ValueError, TypeError):
             # 날짜 형식이 잘못된 경우 False 반환 (평가 가능)
-            return False 
+            return False
+    
+    def get_candidate_questions(self, candidate_id: str) -> List[Question]:
+        """지원자에게 출제할 문제 목록 조회"""
+        candidate = self.get_candidate(candidate_id)
+        if not candidate:
+            return []
+        
+        all_questions = self.load_questions()
+        
+        # 선택된 문제가 있으면 해당 문제들만 반환
+        if candidate.selected_questions:
+            selected_questions = []
+            for question in all_questions:
+                if question.id in candidate.selected_questions:
+                    selected_questions.append(question)
+            return selected_questions
+        
+        # 선택된 문제가 없으면 전체 문제 반환
+        return all_questions
+    
+    def set_candidate_questions(self, candidate_id: str, question_ids: List[str]):
+        """지원자 출제 문제 설정"""
+        candidates = self._load_json(self.candidates_file)
+        for candidate in candidates:
+            if candidate["id"] == candidate_id:
+                candidate["selected_questions"] = question_ids
+                break
+        self._save_json(self.candidates_file, candidates)
+    
+    def get_random_questions(self, count: int = 10, category: str = None) -> List[str]:
+        """랜덤 문제 ID 목록 생성"""
+        all_questions = self.load_questions()
+        
+        # 카테고리 필터링
+        if category:
+            filtered_questions = [q for q in all_questions if q.category == category]
+        else:
+            filtered_questions = all_questions
+        
+        # 랜덤 선택
+        import random
+        if len(filtered_questions) <= count:
+            return [q.id for q in filtered_questions]
+        else:
+            selected = random.sample(filtered_questions, count)
+            return [q.id for q in selected]
+    
+    def get_questions_by_category(self, category: str) -> List[Question]:
+        """카테고리별 문제 목록 조회"""
+        all_questions = self.load_questions()
+        return [q for q in all_questions if q.category == category] 

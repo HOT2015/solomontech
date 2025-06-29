@@ -29,6 +29,16 @@
             border-bottom: 2px solid #e9ecef;
         }
         
+        .logo-container {
+            margin-bottom: 20px;
+        }
+        
+        .logo-image {
+            max-height: 80px;
+            max-width: 200px;
+            margin-bottom: 15px;
+        }
+        
         .header h1 {
             color: #495057;
             font-weight: 700;
@@ -183,14 +193,30 @@
 <body>
     <div class="main-container">
         <div class="header">
-            <h1><i class="fas fa-clipboard-check"></i> 인적성 평가시스템</h1>
-            <p>기술 역량과 문제 해결력을 통합적으로 평가하는 온라인 시스템</p>
+            <div class="logo-container">
+                <!-- 로고 이미지가 있으면 표시, 없으면 기본 아이콘 표시 -->
+                {% if config.get('COMPANY_LOGO') %}
+                    <img src="{{ url_for('static', filename='images/' + config.COMPANY_LOGO) }}" 
+                         alt="회사 로고" class="logo-image">
+                {% else %}
+                    <i class="fas fa-clipboard-check fa-3x text-primary mb-3"></i>
+                {% endif %}
+            </div>
+            <h1>{% if config.get('COMPANY_NAME') %}{{ config.COMPANY_NAME }}{% else %}인적성 평가시스템{% endif %}</h1>
+            <p>{% if config.get('COMPANY_DESCRIPTION') %}{{ config.COMPANY_DESCRIPTION }}{% else %}기술 역량과 문제 해결력을 통합적으로 평가하는 온라인 시스템{% endif %}</p>
         </div>
+        
+        <!-- 화면 고유번호 및 템플릿명 표시용 블록 추가 -->
+        {% block page_id %}
+        <div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
+          화면ID: PAGE-BASE (base.html)
+        </div>
+        {% endblock %}
         
         {% block content %}{% endblock %}
         
         <div class="footer">
-            <p>&copy; 2024 인적성 평가시스템. 모든 권리 보유.</p>
+            <p>&copy; 2024 {% if config.get('COMPANY_NAME') %}{{ config.COMPANY_NAME }}{% else %}인적성 평가시스템{% endif %}. 모든 권리 보유.</p>
         </div>
     </div>
     

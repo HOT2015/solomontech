@@ -2,6 +2,12 @@
 
 {% block title %}기술 평가 - 인적성 평가시스템{% endblock %}
 
+{% block page_id %}
+<div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
+  화면ID: PAGE-TECHNICAL (technical_test.html)
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
@@ -223,12 +229,12 @@ document.getElementById('technicalTestForm').addEventListener('submit', function
     }
 });
 
-// 페이지 떠날 때 경고
-window.addEventListener('beforeunload', function(e) {
-    if (answeredQuestions > 0) {
-        e.preventDefault();
-        e.returnValue = '평가 중입니다. 페이지를 떠나시면 답안이 저장되지 않습니다.';
-    }
-});
+// 페이지 떠날 때 경고 제거 - 브라우저 기본 경고 메시지 비활성화
+// window.addEventListener('beforeunload', function(e) {
+//     if (answeredQuestions > 0) {
+//         e.preventDefault();
+//         e.returnValue = '평가 중입니다. 페이지를 떠나시면 답안이 저장되지 않습니다.';
+//     }
+// });
 </script>
 {% endblock %} 

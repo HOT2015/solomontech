@@ -1,25 +1,18 @@
 [
   {
-    "candidate_id": "b7cd8863-0f24-48e9-a75f-bf58c14747c8",
-    "test_date": "2025-06-29T20:44:35.397308",
+    "candidate_id": "959f9a1c-736d-4759-9baa-4824ec634a27",
+    "test_date": "2025-06-29T23:44:09.522799",
     "answers": {
-      "tech_1": "let",
-      "tech_2": "implements",
-      "tech_3": "GET",
-      "tech_4": "CREATE",
-      "tech_5": "CONNECT",
-      "tech_6": "test",
-      "tech_7": "etst",
-      "tech_8": "3",
-      "ps_1": "평문으로 저장",
-      "ps_2": "JavaScript 파일 병합",
-      "ps_3": "서버에서만"
+      "tech_17": "ee",
+      "tech_6": "eee",
+      "ps_6": "빠른 로딩 속도",
+      "ps_16": "키보드 네비게이션 지원"
     },
     "scores": {
       "technical": 0,
-      "problem_solving": 0
+      "problem_solving": 30
     },
-    "total_score": 0,
+    "total_score": 30,
     "rank": 1
   }
 ]

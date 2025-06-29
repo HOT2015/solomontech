@@ -2,16 +2,25 @@
 
 {% block title %}문제 관리 - 인적성평가시스템{% endblock %}
 
+{% block page_id %}
+<div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
+  화면ID: PAGE-QUESTION-MANAGE (question_manage.html)
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
-            <h2 class="mb-4">문제 관리</h2>
+            <h2><i class="fas fa-question-circle"></i> 문제 관리</h2>
             
             <!-- 문제 생성 버튼 -->
             <div class="mb-3">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
                     <i class="fas fa-plus"></i> 새 문제 추가
+                </button>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+                    <i class="fas fa-upload"></i> 파일로 문제 추가
                 </button>
                 <a href="{{ url_for('admin') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> 관리자 페이지로
@@ -140,10 +149,13 @@
     </div>
 </div>
 
-<!-- 문제 추가 모달 -->
+<!-- 문제 추가 모달: 최상단에 고유ID 표시 -->
 <div class="modal fade" id="addQuestionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
+            <div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
+                팝업ID: POPUP-ADD-QUESTION (question_manage.html)
+            </div>
             <div class="modal-header">
                 <h5 class="modal-title">새 문제 추가</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -195,7 +207,9 @@
                         <label class="form-label">문제 내용</label>
                         <textarea name="question" class="form-control" rows="3" required></textarea>
                     </div>
-                    <div id="optionsSection" style="display: none;">
+                    
+                    <!-- 객관식 선택지 -->
+                    <div id="optionsSection" style="display:none;">
                         <div class="mb-3">
                             <label class="form-label">선택지</label>
                             <div id="optionsContainer">
@@ -222,14 +236,16 @@
                             <input type="text" name="correct_answer" class="form-control" placeholder="정답을 입력하세요">
                         </div>
                     </div>
-                    <div id="keywordsSection" style="display: none;">
-                        <div class="mb-3">
-                            <label class="form-label">키워드 (쉼표로 구분)</label>
-                            <input type="text" name="keywords" class="form-control" placeholder="예: for, int, i, 1, 10, ++">
-                        </div>
+                    
+                    <!-- 주관식 키워드 -->
+                    <div id="keywordsSection" style="display:none;">
                         <div class="mb-3">
                             <label class="form-label">정답 예시</label>
                             <input type="text" name="correct_answer" class="form-control" placeholder="정답 예시를 입력하세요">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">채점 키워드 (쉼표로 구분)</label>
+                            <input type="text" name="keywords" class="form-control" placeholder="키워드1, 키워드2, 키워드3">
                         </div>
                     </div>
                 </div>
@@ -242,27 +258,86 @@
     </div>
 </div>
 
-<!-- 문제 수정 모달 -->
-<div class="modal fade" id="editQuestionModal" tabindex="-1">
+<!-- 파일 업로드 모달: 최상단에 고유ID 표시 -->
+<div class="modal fade" id="uploadFileModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
+            <div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
+                팝업ID: POPUP-UPLOAD-QUESTION (question_manage.html)
+            </div>
             <div class="modal-header">
-                <h5 class="modal-title">문제 수정</h5>
+                <h5 class="modal-title">파일로 문제 추가</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editQuestionForm">
-                <input type="hidden" name="question_id" id="editQuestionId">
+            <form id="uploadFileForm">
                 <div class="modal-body">
-                    <!-- 수정 폼 내용 (추가 폼과 동일) -->
+                    <div class="mb-3">
+                        <label class="form-label">파일 선택</label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.docx" required>
+                        <div class="form-text">Excel(.xlsx) 또는 Word(.docx) 파일을 선택하세요. (최대 10MB)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>파일 형식 안내</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Excel 파일 형식</h6>
+                                <small class="text-muted">
+                                    첫 번째 시트에 다음 순서로 데이터를 입력하세요:<br>
+                                    카테고리 | 유형 | 난이도 | 문제 | 배점 | 선택지1 | 선택지2 | 선택지3 | 선택지4 | 정답
+                                </small>
+                                <br><br>
+                                <a href="{{ url_for('download_sample_excel') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download"></i> 샘플 Excel 다운로드
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Word 파일 형식</h6>
+                                <small class="text-muted">
+                                    각 문제를 다음과 같은 형식으로 작성하세요:<br>
+                                    카테고리|유형|난이도|문제내용<br>
+                                    문제 상세 내용<br>
+                                    1. 선택지1<br>
+                                    2. 선택지2<br>
+                                    3. 선택지3<br>
+                                    4. 선택지4<br>
+                                    정답: 정답내용
+                                </small>
+                                <br><br>
+                                <a href="{{ url_for('download_sample_word') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download"></i> 샘플 Word 다운로드
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 업로드 진행률 -->
+                    <div id="uploadProgress" style="display:none;">
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div id="uploadStatus" class="text-muted"></div>
+                    </div>
+                    
+                    <!-- 업로드 결과 -->
+                    <div id="uploadResult" style="display:none;">
+                        <div id="resultAlert" class="alert">
+                            <div id="resultTitle"></div>
+                            <div id="resultDetails"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="submit" class="btn btn-primary">수정</button>
+                    <button type="submit" class="btn btn-success" id="uploadBtn">
+                        <i class="fas fa-upload"></i> 업로드
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -379,6 +454,118 @@ document.querySelectorAll('.delete-question').forEach(button => {
             });
         }
     });
+});
+
+// 파일 업로드 폼 제출
+document.getElementById('uploadFileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progressDiv = document.getElementById('uploadProgress');
+    const resultDiv = document.getElementById('uploadResult');
+    const progressBar = progressDiv.querySelector('.progress-bar');
+    const statusDiv = document.getElementById('uploadStatus');
+    
+    // 업로드 버튼 비활성화
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 업로드 중...';
+    
+    // 진행률 표시
+    progressDiv.style.display = 'block';
+    resultDiv.style.display = 'none';
+    progressBar.style.width = '0%';
+    statusDiv.textContent = '파일을 업로드하는 중...';
+    
+    // 업로드 요청
+    fetch('/admin/questions/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        progressBar.style.width = '100%';
+        statusDiv.textContent = '업로드 완료!';
+        
+        // 결과 표시
+        const resultAlert = document.getElementById('resultAlert');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDetails = document.getElementById('resultDetails');
+        
+        if (data.success) {
+            resultAlert.className = 'alert alert-success';
+            resultTitle.innerHTML = '<i class="fas fa-check-circle"></i> 업로드 성공!';
+            
+            let details = `<p>총 ${data.total_questions}개의 문제가 처리되었습니다.</p>`;
+            if (data.added_questions > 0) {
+                details += `<p><strong>추가된 문제:</strong> ${data.added_questions}개</p>`;
+            }
+            if (data.updated_questions > 0) {
+                details += `<p><strong>업데이트된 문제:</strong> ${data.updated_questions}개</p>`;
+            }
+            if (data.skipped_questions > 0) {
+                details += `<p><strong>건너뛴 문제:</strong> ${data.skipped_questions}개</p>`;
+            }
+            if (data.errors && data.errors.length > 0) {
+                details += `<p><strong>오류:</strong></p><ul>`;
+                data.errors.forEach(error => {
+                    details += `<li>${error}</li>`;
+                });
+                details += `</ul>`;
+            }
+            
+            resultDetails.innerHTML = details;
+            
+            // 성공 시 페이지 새로고침
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        } else {
+            resultAlert.className = 'alert alert-danger';
+            resultTitle.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 업로드 실패!';
+            resultDetails.innerHTML = `<p>${data.message}</p>`;
+            if (data.errors && data.errors.length > 0) {
+                resultDetails.innerHTML += `<ul>`;
+                data.errors.forEach(error => {
+                    resultDetails.innerHTML += `<li>${error}</li>`;
+                });
+                resultDetails.innerHTML += `</ul>`;
+            }
+        }
+        
+        resultDiv.style.display = 'block';
+        
+        // 업로드 버튼 복원
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fas fa-upload"></i> 업로드';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        
+        // 오류 결과 표시
+        const resultAlert = document.getElementById('resultAlert');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDetails = document.getElementById('resultDetails');
+        
+        resultAlert.className = 'alert alert-danger';
+        resultTitle.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 업로드 오류!';
+        resultDetails.innerHTML = '<p>파일 업로드 중 오류가 발생했습니다.</p>';
+        
+        resultDiv.style.display = 'block';
+        
+        // 업로드 버튼 복원
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '<i class="fas fa-upload"></i> 업로드';
+    });
+});
+
+// 모달 닫을 때 폼 초기화
+document.getElementById('uploadFileModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('uploadFileForm').reset();
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('uploadResult').style.display = 'none';
+    document.getElementById('uploadBtn').disabled = false;
+    document.getElementById('uploadBtn').innerHTML = '<i class="fas fa-upload"></i> 업로드';
 });
 </script>
 {% endblock %} 

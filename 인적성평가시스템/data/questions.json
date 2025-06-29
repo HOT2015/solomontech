@@ -112,15 +112,203 @@
       "category": "Java",
       "type": "객관식",
       "difficulty": "초급",
-      "question": "테스트문제입니다.",
-      "points": 2,
+      "question": "Java에서 배열을 선언하는 올바른 방법은?",
       "options": [
-        "1",
-        "2",
-        "3",
-        "4"
+        "int[] arr = new int[5]",
+        "int arr[] = new int[5]",
+        "array arr = new array[5]",
+        "int arr = [1,2,3,4,5]"
       ],
-      "correct_answer": ""
+      "correct_answer": "int[] arr = new int[5]",
+      "points": 10
+    },
+    {
+      "id": "tech_9",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "Java에서 인터페이스를 구현할 때 사용하는 키워드는?",
+      "options": [
+        "extends",
+        "implements",
+        "interface",
+        "abstract"
+      ],
+      "correct_answer": "implements",
+      "points": 10
+    },
+    {
+      "id": "tech_10",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "Java에서 메서드를 정의할 때 반환 타입이 없을 경우 사용하는 키워드는?",
+      "options": [
+        "void",
+        "null",
+        "empty",
+        "none"
+      ],
+      "correct_answer": "void",
+      "points": 10
+    },
+    {
+      "id": "tech_11",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "SQL에서 데이터를 수정할 때 사용하는 명령어는?",
+      "options": [
+        "UPDATE",
+        "MODIFY",
+        "CHANGE",
+        "EDIT"
+      ],
+      "correct_answer": "UPDATE",
+      "points": 10
+    },
+    {
+      "id": "tech_12",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "SQL에서 데이터를 삭제할 때 사용하는 명령어는?",
+      "options": [
+        "DELETE",
+        "REMOVE",
+        "DROP",
+        "CLEAR"
+      ],
+      "correct_answer": "DELETE",
+      "points": 10
+    },
+    {
+      "id": "tech_13",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "SQL에서 중복된 데이터를 제거할 때 사용하는 키워드는?",
+      "options": [
+        "DISTINCT",
+        "UNIQUE",
+        "DIFFERENT",
+        "SINGLE"
+      ],
+      "correct_answer": "DISTINCT",
+      "points": 10
+    },
+    {
+      "id": "tech_14",
+      "category": "Java",
+      "type": "주관식",
+      "difficulty": "초급",
+      "question": "Java에서 정수형 변수 a에 10을 할당하는 코드를 작성하세요.",
+      "correct_answer": "int a = 10",
+      "keywords": [
+        "int",
+        "a",
+        "=",
+        "10"
+      ],
+      "points": 20
+    },
+    {
+      "id": "tech_15",
+      "category": "Java",
+      "type": "주관식",
+      "difficulty": "중급",
+      "question": "Java에서 if문을 사용하여 변수 x가 0보다 크면 'positive'를 출력하는 코드를 작성하세요.",
+      "correct_answer": "if(x > 0) System.out.println('positive')",
+      "keywords": [
+        "if",
+        "x",
+        ">",
+        "0",
+        "System",
+        "out",
+        "println",
+        "positive"
+      ],
+      "points": 20
+    },
+    {
+      "id": "tech_16",
+      "category": "Database",
+      "type": "주관식",
+      "difficulty": "초급",
+      "question": "SQL에서 'users' 테이블의 모든 데이터를 조회하는 쿼리를 작성하세요.",
+      "correct_answer": "SELECT * FROM users",
+      "keywords": [
+        "SELECT",
+        "*",
+        "FROM",
+        "users"
+      ],
+      "points": 20
+    },
+    {
+      "id": "tech_17",
+      "category": "Database",
+      "type": "주관식",
+      "difficulty": "중급",
+      "question": "SQL에서 'employees' 테이블에서 salary가 50000 이상인 직원을 조회하는 쿼리를 작성하세요.",
+      "correct_answer": "SELECT * FROM employees WHERE salary >= 50000",
+      "keywords": [
+        "SELECT",
+        "*",
+        "FROM",
+        "employees",
+        "WHERE",
+        "salary",
+        ">=",
+        "50000"
+      ],
+      "points": 20
+    },
+    {
+      "id": "tech_18",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "Java에서 예외를 처리할 때 사용하는 키워드는?",
+      "options": [
+        "try-catch",
+        "if-else",
+        "switch-case",
+        "for-while"
+      ],
+      "correct_answer": "try-catch",
+      "points": 10
+    },
+    {
+      "id": "tech_19",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "Java에서 문자열을 연결할 때 사용하는 연산자는?",
+      "options": [
+        "+",
+        "&",
+        ".",
+        "||"
+      ],
+      "correct_answer": "+",
+      "points": 10
+    },
+    {
+      "id": "tech_20",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "SQL에서 데이터를 정렬할 때 사용하는 절은?",
+      "options": [
+        "ORDER BY",
+        "SORT BY",
+        "ARRANGE BY",
+        "GROUP BY"
+      ],
+      "correct_answer": "ORDER BY",
+      "points": 10
     }
   ],
   "problem_solving_questions": [
@@ -167,6 +355,261 @@
         "검사하지 않음"
       ],
       "correct_answer": "클라이언트와 서버 모두",
+      "points": 15
+    },
+    {
+      "id": "ps_4",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "온라인 쇼핑몰에서 주문 취소 기능을 구현할 때 가장 중요한 것은?",
+      "options": [
+        "빠른 처리 속도",
+        "사용자 인증 확인",
+        "아름다운 UI",
+        "많은 옵션 제공"
+      ],
+      "correct_answer": "사용자 인증 확인",
+      "points": 15
+    },
+    {
+      "id": "ps_5",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "대용량 데이터를 처리할 때 성능을 향상시키는 가장 좋은 방법은?",
+      "options": [
+        "모든 데이터를 메모리에 로드",
+        "페이지네이션 사용",
+        "데이터베이스 인덱스 제거",
+        "단일 쿼리로 모든 데이터 조회"
+      ],
+      "correct_answer": "페이지네이션 사용",
+      "points": 15
+    },
+    {
+      "id": "ps_6",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "모바일 앱에서 사용자 경험을 개선하는 가장 중요한 요소는?",
+      "options": [
+        "복잡한 기능",
+        "빠른 로딩 속도",
+        "많은 색상 사용",
+        "긴 텍스트 설명"
+      ],
+      "correct_answer": "빠른 로딩 속도",
+      "points": 15
+    },
+    {
+      "id": "ps_7",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "API 설계에서 RESTful 원칙을 따르는 가장 중요한 것은?",
+      "options": [
+        "복잡한 URL 구조",
+        "HTTP 메서드 적절한 사용",
+        "많은 매개변수 사용",
+        "긴 응답 시간"
+      ],
+      "correct_answer": "HTTP 메서드 적절한 사용",
+      "points": 15
+    },
+    {
+      "id": "ps_8",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "소프트웨어 테스트에서 가장 중요한 것은?",
+      "options": [
+        "테스트 코드 작성 속도",
+        "테스트 커버리지",
+        "테스트 파일 크기",
+        "테스트 이름 길이"
+      ],
+      "correct_answer": "테스트 커버리지",
+      "points": 15
+    },
+    {
+      "id": "ps_9",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "데이터베이스 백업을 수행할 때 가장 중요한 것은?",
+      "options": [
+        "백업 파일 크기",
+        "정기적인 백업 수행",
+        "백업 속도",
+        "백업 파일 이름"
+      ],
+      "correct_answer": "정기적인 백업 수행",
+      "points": 15
+    },
+    {
+      "id": "ps_10",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "웹 애플리케이션에서 보안을 강화하는 가장 기본적인 방법은?",
+      "options": [
+        "복잡한 비밀번호 정책",
+        "HTTPS 사용",
+        "많은 사용자 권한",
+        "긴 세션 시간"
+      ],
+      "correct_answer": "HTTPS 사용",
+      "points": 15
+    },
+    {
+      "id": "ps_11",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "마이크로서비스 아키텍처에서 서비스 간 통신 시 가장 중요한 것은?",
+      "options": [
+        "빠른 통신 속도",
+        "데이터 일관성",
+        "단순한 구조",
+        "적은 네트워크 사용"
+      ],
+      "correct_answer": "데이터 일관성",
+      "points": 15
+    },
+    {
+      "id": "ps_12",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "사용자 피드백을 수집하는 가장 효과적인 방법은?",
+      "options": [
+        "복잡한 설문조사",
+        "간단한 평점 시스템",
+        "긴 인터뷰",
+        "기술적 문서"
+      ],
+      "correct_answer": "간단한 평점 시스템",
+      "points": 15
+    },
+    {
+      "id": "ps_13",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "클라우드 서비스 선택 시 가장 중요한 고려사항은?",
+      "options": [
+        "저렴한 가격",
+        "서비스 안정성",
+        "많은 기능",
+        "빠른 가입 절차"
+      ],
+      "correct_answer": "서비스 안정성",
+      "points": 15
+    },
+    {
+      "id": "ps_14",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "소프트웨어 개발에서 버전 관리를 위한 가장 좋은 도구는?",
+      "options": [
+        "파일 복사",
+        "Git",
+        "메모장",
+        "이메일"
+      ],
+      "correct_answer": "Git",
+      "points": 15
+    },
+    {
+      "id": "ps_15",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "애자일 개발 방법론에서 가장 중요한 것은?",
+      "options": [
+        "빠른 개발",
+        "고객과의 협업",
+        "많은 문서 작성",
+        "엄격한 계획"
+      ],
+      "correct_answer": "고객과의 협업",
+      "points": 15
+    },
+    {
+      "id": "ps_16",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "웹사이트 접근성을 향상시키는 가장 중요한 요소는?",
+      "options": [
+        "아름다운 디자인",
+        "키보드 네비게이션 지원",
+        "많은 애니메이션",
+        "복잡한 레이아웃"
+      ],
+      "correct_answer": "키보드 네비게이션 지원",
+      "points": 15
+    },
+    {
+      "id": "ps_17",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "데이터 분석에서 데이터 품질을 향상시키는 가장 중요한 단계는?",
+      "options": [
+        "빠른 처리",
+        "데이터 정제",
+        "많은 시각화",
+        "복잡한 알고리즘"
+      ],
+      "correct_answer": "데이터 정제",
+      "points": 15
+    },
+    {
+      "id": "ps_18",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "모바일 앱에서 배터리 사용량을 줄이는 가장 효과적인 방법은?",
+      "options": [
+        "많은 기능 추가",
+        "백그라운드 프로세스 최소화",
+        "높은 화면 밝기",
+        "지속적인 네트워크 연결"
+      ],
+      "correct_answer": "백그라운드 프로세스 최소화",
+      "points": 15
+    },
+    {
+      "id": "ps_19",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "소프트웨어 배포 시 가장 안전한 방법은?",
+      "options": [
+        "직접 서버에 업로드",
+        "자동화된 CI/CD 파이프라인",
+        "수동 테스트만 수행",
+        "즉시 모든 사용자에게 배포"
+      ],
+      "correct_answer": "자동화된 CI/CD 파이프라인",
+      "points": 15
+    },
+    {
+      "id": "ps_20",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "사용자 인터페이스 설계에서 가장 중요한 원칙은?",
+      "options": [
+        "복잡한 기능",
+        "사용자 중심 설계",
+        "많은 색상",
+        "기술적 완성도"
+      ],
+      "correct_answer": "사용자 중심 설계",
       "points": 15
     }
   ]
