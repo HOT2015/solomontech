@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block title %}관리자 페이지 - 인적성 평가시스템{% endblock %}
+
+{% block content %}
+<!-- 지원자 추가 모달: 최상단에 위치 -->
+<div class="modal fade" id="addCandidateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addCandidateForm">
+        <div class="modal-header">
+          <h5 class="modal-title">지원자 사전등록</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">이름</label>
+            <input type="text" name="name" class="form-control" required>
+            <div class="form-text">지원자는 이름만 일치해야 입장 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">접속 가능 날짜 (YYYY-MM-DD)</label>
+            <input type="date" name="access_date" class="form-control" required>
+            <div class="form-text">해당 날짜에만 시험 응시 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">문제풀이 시간(분)</label>
+            <input type="number" name="test_duration" class="form-control" min="1" value="10">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="submit" class="btn btn-success">등록</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 지원자 수정 모달 -->
+<div class="modal fade" id="editCandidateModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="editCandidateForm">
+        <div class="modal-header">
+          <h5 class="modal-title">지원자 정보 수정</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editCandidateId" name="candidate_id">
+          <div class="mb-3">
+            <label class="form-label">이름</label>
+            <input type="text" id="editCandidateName" name="name" class="form-control" required>
+            <div class="form-text">지원자는 이름만 일치해야 입장 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">접속 가능 날짜 (YYYY-MM-DD)</label>
+            <input type="date" id="editCandidateAccessDate" name="access_date" class="form-control" required>
+            <div class="form-text">해당 날짜에만 시험 응시 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">문제풀이 시간(분)</label>
+            <input type="number" id="editCandidateTestDuration" name="test_duration" class="form-control" min="1" value="10">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="submit" class="btn btn-primary">수정</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 기존 관리자 페이지 내용 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-chart-bar"></i> 관리자 대시보드
+                </h3>
+                
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">총 지원자</h5>
+                                <h3 class="mb-0">{{ candidates|length }}명</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">평가 완료</h5>
+                                <h3 class="mb-0">{{ candidate_results|length }}명</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">평가 미완료</h5>
+                                <h3 class="mb-0">{{ candidates|length - candidate_results|length }}명</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">평균 점수</h5>
+                                <h3 class="mb-0">
+                                    {# 평가 결과가 있을 때만 평균 계산, 없으면 0점 #}
+                                    {% if candidate_results and candidate_results|length > 0 %}
+                                        {{ "%.1f"|format(candidate_results.values()|map(attribute='result.total_score')|sum / candidate_results|length) }}점
+                                    {% else %}
+                                        0점
+                                    {% endif %}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">
+                    <i class="fas fa-list"></i> 지원자 목록 및 평가 결과
+                </h4>
+                
+                <!-- 관리 기능 버튼 -->
+                <div class="mb-3">
+                    <a href="{{ url_for('question_manage') }}" class="btn btn-primary">
+                        <i class="fas fa-question-circle"></i> 문제 관리
+                    </a>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
+                        <i class="fas fa-user-plus"></i> 지원자 추가
+                    </button>
+                </div>
+                
+                {% if candidates %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>순위</th>
+                                <th>이름</th>
+                                <th>이메일</th>
+                                <th>핸드폰번호</th>
+                                <th>등록일시</th>
+                                <th>평가완료시간</th>
+                                <th>기술 점수</th>
+                                <th>문제해결력</th>
+                                <th>총점</th>
+                                <th>평가 상태</th>
+                                <th>평가일시</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in candidates %}
+                            {% set result = candidate_results.get(candidate.id) %}
+                            <tr>
+                                <td>
+                                    {% if result %}
+                                        <span class="badge bg-primary">{{ result.result.rank }}위</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ candidate.name }}</strong>
+                                </td>
+                                <td>{{ candidate.email }}</td>
+                                <td>{{ candidate.phone }}</td>
+                                <td>{{ candidate.created_at[:19] if candidate.created_at else '' }}</td>
+                                <td>
+                                    <input type="datetime-local" class="form-control form-control-sm deadline-input" 
+                                           data-candidate-id="{{ candidate.id }}" 
+                                           value="{{ candidate.test_deadline[:16] if candidate.test_deadline else '' }}" 
+                                           style="width: 150px;">
+                                </td>
+                                <td>
+                                    {% if result %}
+                                        <span class="badge bg-primary">{{ result.result.scores.technical }}점</span>
+                                    {% else %}
+                                        <span class="text-muted">미평가</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result %}
+                                        <span class="badge bg-warning text-dark">{{ result.result.scores.problem_solving }}점</span>
+                                    {% else %}
+                                        <span class="text-muted">미평가</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result %}
+                                        <strong>{{ result.result.total_score }}점</strong>
+                                    {% else %}
+                                        <span class="text-muted">미평가</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result %}
+                                        <span class="badge bg-success">완료</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">미완료</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result %}
+                                        {{ result.result.test_date[:19] if result.result.test_date else '' }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary edit-candidate" 
+                                            data-candidate-id="{{ candidate.id }}" 
+                                            data-candidate-name="{{ candidate.name }}"
+                                            data-access-date="{{ candidate.access_date }}"
+                                            data-test-duration="{{ candidate.test_duration }}">
+                                        <i class="fas fa-edit"></i> 수정
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-candidate" 
+                                            data-candidate-id="{{ candidate.id }}" 
+                                            data-candidate-name="{{ candidate.name }}">
+                                        <i class="fas fa-trash"></i> 삭제
+                                    </button>
+                                    {% if result %}
+                                    <a href="{{ url_for('admin_answer_detail', candidate_id=candidate.id) }}" class="btn btn-sm btn-outline-info mt-1">
+                                        <i class="fas fa-file-alt"></i> 답안 상세
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">등록된 지원자가 없습니다.</h5>
+                    <p class="text-muted">지원자가 등록되면 여기에 표시됩니다.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if candidate_results %}
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-trophy"></i> 상위 5명
+                </h5>
+                <div class="list-group">
+                    {% for candidate_id, data in candidate_results.items() %}
+                    {% if data.result.rank <= 5 %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ data.result.rank }}위</strong> - {{ data.candidate.name }}
+                            <br><small class="text-muted">{{ data.candidate.email }}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ data.result.total_score }}점</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-pie"></i> 점수 분포
+                </h5>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="text-success">
+                            {% set excellent = candidate_results.values()|selectattr('result.total_score', '>=', 150)|list|length %}
+                            {{ excellent }}
+                        </h4>
+                        <small class="text-muted">우수 (150점↑)</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-info">
+                            {% set good = candidate_results.values()|selectattr('result.total_score', '>=', 120)|selectattr('result.total_score', '<', 150)|list|length %}
+                            {{ good }}
+                        </h4>
+                        <small class="text-muted">양호 (120-149점)</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-warning">
+                            {% set normal = candidate_results.values()|selectattr('result.total_score', '>=', 90)|selectattr('result.total_score', '<', 120)|list|length %}
+                            {{ normal }}
+                        </h4>
+                        <small class="text-muted">보통 (90-119점)</small>
+                    </div>
+                </div>
+                <div class="row text-center mt-3">
+                    <div class="col-12">
+                        <h4 class="text-danger">
+                            {% set poor = candidate_results.values()|selectattr('result.total_score', '<', 90)|list|length %}
+                            {{ poor }}
+                        </h4>
+                        <small class="text-muted">개선 필요 (90점↓)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="text-center mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-primary">
+        <i class="fas fa-home"></i> 메인으로 돌아가기
+    </a>
+    <button onclick="window.print()" class="btn btn-secondary">
+        <i class="fas fa-print"></i> 결과 출력
+    </button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 지원자 삭제 기능
+document.querySelectorAll('.delete-candidate').forEach(button => {
+    button.addEventListener('click', function() {
+        const candidateId = this.dataset.candidateId;
+        const candidateName = this.dataset.candidateName;
+        
+        console.log('삭제 버튼 클릭됨:', candidateId, candidateName); // 디버깅 로그
+        
+        if (confirm(`정말로 "${candidateName}" 지원자를 삭제하시겠습니까?\n관련된 평가 결과도 함께 삭제됩니다.`)) {
+            console.log('삭제 확인됨, API 호출 시작'); // 디버깅 로그
+            
+            fetch(`/admin/candidate/delete/${candidateId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                console.log('API 응답 받음:', response.status); // 디버깅 로그
+                return response.json();
+            })
+            .then(data => {
+                console.log('API 응답 데이터:', data); // 디버깅 로그
+                if (data.success) {
+                    alert('지원자가 삭제되었습니다.');
+                    location.reload();
+                } else {
+                    alert('삭제에 실패했습니다: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            });
+        }
+    });
+});
+
+// 평가완료시간 설정 기능
+document.querySelectorAll('.deadline-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const candidateId = this.dataset.candidateId;
+        const deadline = this.value;
+        
+        fetch(`/admin/candidate/deadline/${candidateId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ deadline: deadline })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 성공 시 시각적 피드백
+                this.style.borderColor = '#28a745';
+                setTimeout(() => {
+                    this.style.borderColor = '';
+                }, 2000);
+            } else {
+                alert('평가완료시간 설정에 실패했습니다: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('평가완료시간 설정 중 오류가 발생했습니다.');
+        });
+    });
+});
+
+// 지원자 추가 폼 제출
+const addCandidateForm = document.getElementById('addCandidateForm');
+if (addCandidateForm) {
+    addCandidateForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        fetch('/admin/candidate/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('지원자가 등록되었습니다.');
+                location.reload();
+            } else {
+                alert('등록 실패: ' + data.message);
+            }
+        })
+        .catch(err => {
+            alert('오류 발생: ' + err);
+        });
+    });
+}
+
+// 지원자 수정 기능
+document.querySelectorAll('.edit-candidate').forEach(button => {
+    button.addEventListener('click', function() {
+        const candidateId = this.dataset.candidateId;
+        const candidateName = this.dataset.candidateName;
+        const accessDate = this.dataset.accessDate;
+        const testDuration = this.dataset.testDuration;
+        
+        console.log('수정 버튼 클릭됨:', candidateId, candidateName); // 디버깅 로그
+        
+        // 모달에 기존 데이터 채우기
+        document.getElementById('editCandidateId').value = candidateId;
+        document.getElementById('editCandidateName').value = candidateName;
+        document.getElementById('editCandidateAccessDate').value = accessDate;
+        document.getElementById('editCandidateTestDuration').value = testDuration;
+        
+        // 모달 열기
+        const editModal = new bootstrap.Modal(document.getElementById('editCandidateModal'));
+        editModal.show();
+    });
+});
+
+// 지원자 수정 폼 제출
+const editCandidateForm = document.getElementById('editCandidateForm');
+if (editCandidateForm) {
+    editCandidateForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const candidateId = document.getElementById('editCandidateId').value;
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        
+        console.log('수정 폼 제출:', candidateId, data); // 디버깅 로그
+        
+        fetch(`/admin/candidate/edit/${candidateId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('지원자 정보가 수정되었습니다.');
+                location.reload();
+            } else {
+                alert('수정 실패: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('수정 중 오류가 발생했습니다.');
+        });
+    });
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}지원자 등록 - 인적성 평가시스템{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">
+                    <i class="fas fa-user-plus"></i> 지원자 등록
+                </h3>
+                
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                </div>
+                {% endif %}
+                
+                <form method="POST" id="registerForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">
+                            <i class="fas fa-user"></i> 이름
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               placeholder="이름을 입력하세요" required>
+                        <div id="nameValidation" class="form-text mt-2"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope"></i> 이메일
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               placeholder="이메일을 입력하세요" required disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">
+                            <i class="fas fa-phone"></i> 핸드폰번호
+                        </label>
+                        <input type="tel" class="form-control" id="phone" name="phone" 
+                               placeholder="010-0000-0000" required disabled>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                            <i class="fas fa-arrow-right"></i> 평가 시작하기
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> 메인으로 돌아가기
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle"></i> 등록 안내
+                </h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> 이름, 이메일, 핸드폰번호를 모두 입력해야 합니다</li>
+                    <li><i class="fas fa-check text-success"></i> 관리자가 사전 등록한 이름과 일치해야 입장 가능합니다</li>
+                    <li><i class="fas fa-check text-success"></i> 등록 후 즉시 평가를 시작할 수 있습니다</li>
+                    <li><i class="fas fa-check text-success"></i> 평가는 지정된 날짜에만 응시할 수 있습니다</li>
+                    <li><i class="fas fa-check text-success"></i> 평가 완료 후 즉시 결과를 확인할 수 있습니다</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 이름 실시간 검증 기능
+let nameValidationTimeout;
+
+document.getElementById('name').addEventListener('input', function() {
+    const name = this.value.trim();
+    const validationDiv = document.getElementById('nameValidation');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // 이전 타이머 클리어
+    clearTimeout(nameValidationTimeout);
+    
+    // 입력값이 없으면 검증 메시지 초기화
+    if (!name) {
+        validationDiv.innerHTML = '';
+        validationDiv.className = 'form-text mt-2';
+        emailInput.disabled = true;
+        phoneInput.disabled = true;
+        submitBtn.disabled = true;
+        return;
+    }
+    
+    // 로딩 표시
+    validationDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 이름을 확인하는 중...';
+    validationDiv.className = 'form-text mt-2 text-info';
+    
+    // 500ms 후에 API 호출 (타이핑 중에는 호출하지 않음)
+    nameValidationTimeout = setTimeout(() => {
+        fetch('/api/check_name', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: name })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                // 유효한 이름인 경우
+                validationDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${data.message}`;
+                validationDiv.className = 'form-text mt-2 text-success';
+                emailInput.disabled = false;
+                phoneInput.disabled = false;
+                submitBtn.disabled = false;
+            } else {
+                // 유효하지 않은 이름인 경우
+                validationDiv.innerHTML = `<i class="fas fa-times-circle"></i> ${data.message}`;
+                validationDiv.className = 'form-text mt-2 text-danger';
+                emailInput.disabled = true;
+                phoneInput.disabled = true;
+                submitBtn.disabled = true;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            validationDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 검증 중 오류가 발생했습니다.';
+            validationDiv.className = 'form-text mt-2 text-warning';
+            emailInput.disabled = true;
+            phoneInput.disabled = true;
+            submitBtn.disabled = true;
+        });
+    }, 500);
+});
+
+// 폼 제출 시 최종 검증
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    
+    if (!name || !email || !phone) {
+        e.preventDefault();
+        alert('모든 필드를 입력해주세요.');
+        return;
+    }
+    
+    // 이름이 유효한지 한 번 더 확인
+    fetch('/api/check_name', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: name })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.valid) {
+            e.preventDefault();
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        e.preventDefault();
+        alert('검증 중 오류가 발생했습니다.');
+    });
+});
+</script>
+{% endblock %} 

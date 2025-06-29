@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}문제해결력 평가 - 인적성 평가시스템{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <!-- 지원자 정보 표시 섹션 -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user"></i> 지원자 정보
+                </h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>이름:</strong> {{ candidate.name }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>이메일:</strong> {{ candidate.email or '미입력' }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>핸드폰:</strong> {{ candidate.phone or '미입력' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timer" id="timer">
+            <i class="fas fa-clock"></i> 남은 시간: <span id="timeLeft">05:00</span>
+        </div>
+        
+        <form id="problemSolvingForm" method="POST" action="{{ url_for('submit_answers') }}">
+            <!-- 현재 단계 정보 (hidden) -->
+            <input type="hidden" name="current_step" value="problem_solving">
+            
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="fas fa-lightbulb"></i> 문제해결력 평가
+                        <span class="badge bg-warning ms-2">2단계</span>
+                    </h3>
+                    
+                    <!-- 진행 상황 표시 -->
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>평가 진행 상황:</strong> 1단계 기술 평가 ✓ → 2단계 문제해결력 평가 → 결과 확인
+                    </div>
+                    
+                    <div class="progress mb-4">
+                        <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    
+                    {% for question in questions %}
+                    <div class="question-card" id="question_{{ question.id }}">
+                        <h5 class="mb-3">
+                            <span class="badge bg-warning me-2">{{ loop.index }}</span>
+                            {{ question.question }}
+                            <span class="badge bg-secondary ms-2">{{ question.category }}</span>
+                            <span class="badge bg-info ms-1">{{ question.difficulty }}</span>
+                        </h5>
+                        
+                        <div class="options-container">
+                            {% for option in question.options %}
+                            <div class="option-item" onclick="selectOption('{{ question.id }}', '{{ option }}')">
+                                <input type="radio" name="question_{{ question.id }}" value="{{ option }}" 
+                                       id="option_{{ question.id }}_{{ loop.index }}" style="display: none;">
+                                <label for="option_{{ question.id }}_{{ loop.index }}" class="mb-0 w-100">
+                                    <strong>{{ loop.index }}.</strong> {{ option }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="text-muted mt-2">
+                            <small>
+                                <i class="fas fa-star"></i> 배점: {{ question.points }}점
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-paper-plane"></i> 답안 제출하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 문제풀이 제한 시간(분)
+const testDuration = {{ session.get('test_duration', 10) }};
+// 1분 = 60초
+let totalSeconds = testDuration * 60;
+let extraSeconds = 30;
+let timerInterval = null;
+let extraTimerStarted = false;
+
+function updateTimerDisplay(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    document.getElementById('timer').textContent = `${min}분 ${sec < 10 ? '0' : ''}${sec}초`;
+}
+
+function startTimer() {
+    updateTimerDisplay(totalSeconds);
+    timerInterval = setInterval(() => {
+        totalSeconds--;
+        if (totalSeconds >= 0) {
+            updateTimerDisplay(totalSeconds);
+        } else if (!extraTimerStarted) {
+            // 제한 시간 종료: 30초 추가
+            extraTimerStarted = true;
+            totalSeconds = extraSeconds;
+            alert('제한 시간이 종료되었습니다. 30초의 추가 시간이 주어집니다. 30초 후 자동으로 제출됩니다.');
+        } else {
+            // 30초 추가 시간도 종료: 자동 제출 또는 화면 종료
+            clearInterval(timerInterval);
+            alert('30초 추가 시간도 종료되어 자동으로 제출됩니다.');
+            document.getElementById('problemSolvingForm').submit();
+        }
+    }, 1000);
+}
+
+let timeLeft = 300; // 5분 = 300초
+let totalQuestions = {{ questions|length }};
+let answeredQuestions = 0;
+
+// 옵션 선택 함수
+function selectOption(questionId, option) {
+    // 기존 선택 해제
+    const questionCard = document.getElementById(`question_${questionId}`);
+    questionCard.querySelectorAll('.option-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // 새로운 선택 표시
+    event.currentTarget.classList.add('selected');
+    
+    // 라디오 버튼 선택
+    const radioButton = document.querySelector(`input[name="question_${questionId}"][value="${option}"]`);
+    radioButton.checked = true;
+    
+    updateProgress();
+}
+
+// 진행률 업데이트
+function updateProgress() {
+    const form = document.getElementById('problemSolvingForm');
+    const formData = new FormData(form);
+    let answered = 0;
+    
+    for (let [key, value] of formData.entries()) {
+        if (key.startsWith('question_') && value.trim() !== '') {
+            answered++;
+        }
+    }
+    
+    answeredQuestions = answered;
+    const progress = (answeredQuestions / totalQuestions) * 100;
+    document.getElementById('progressBar').style.width = `${progress}%`;
+    document.getElementById('progressBar').textContent = `${answeredQuestions}/${totalQuestions}`;
+}
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    // 라디오 버튼 변경 감지
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', updateProgress);
+    });
+    
+    // 초기 진행률 설정
+    updateProgress();
+    
+    // 타이머 시작
+    startTimer();
+});
+
+// 폼 제출 전 확인
+document.getElementById('problemSolvingForm').addEventListener('submit', function(e) {
+    if (answeredQuestions === 0) {
+        if (!confirm('아무 문제도 풀지 않았습니다. 정말 제출하시겠습니까?')) {
+            e.preventDefault();
+            return;
+        }
+    } else {
+        if (!confirm(`총 ${totalQuestions}문제 중 ${answeredQuestions}문제를 풀었습니다. 답안을 제출하시겠습니까?`)) {
+            e.preventDefault();
+            return;
+        }
+    }
+});
+
+// 페이지 떠날 때 경고
+window.addEventListener('beforeunload', function(e) {
+    if (answeredQuestions > 0) {
+        e.preventDefault();
+        e.returnValue = '평가 중입니다. 페이지를 떠나시면 답안이 저장되지 않습니다.';
+    }
+});
+</script>
+{% endblock %} 

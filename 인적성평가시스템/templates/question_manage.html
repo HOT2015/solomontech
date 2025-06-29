@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}문제 관리 - 인적성평가시스템{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">문제 관리</h2>
+            
+            <!-- 문제 생성 버튼 -->
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+                    <i class="fas fa-plus"></i> 새 문제 추가
+                </button>
+                <a href="{{ url_for('admin') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 관리자 페이지로
+                </a>
+            </div>
+
+            <!-- 문제 목록 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">문제 목록</h5>
+                </div>
+                <div class="card-body">
+                    <!-- 필터 -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select id="categoryFilter" class="form-select">
+                                <option value="">모든 카테고리</option>
+                                <option value="Java">Java</option>
+                                <option value="Database">Database</option>
+                                <option value="문제해결">문제해결</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="typeFilter" class="form-select">
+                                <option value="">모든 유형</option>
+                                <option value="객관식">객관식</option>
+                                <option value="주관식">주관식</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="difficultyFilter" class="form-select">
+                                <option value="">모든 난이도</option>
+                                <option value="초급">초급</option>
+                                <option value="중급">중급</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" id="searchInput" class="form-control" placeholder="문제 검색...">
+                        </div>
+                    </div>
+
+                    <!-- 기술 문제 -->
+                    <h6 class="text-primary">기술 문제</h6>
+                    <div id="technicalQuestions">
+                        {% for question in technical_questions %}
+                        <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="card-title">{{ question.question }}</h6>
+                                        <div class="question-meta">
+                                            <span class="badge bg-primary">{{ question.category }}</span>
+                                            <span class="badge bg-secondary">{{ question.type }}</span>
+                                            <span class="badge bg-info">{{ question.difficulty }}</span>
+                                            <span class="badge bg-success">{{ question.points }}점</span>
+                                        </div>
+                                        {% if question.type == "객관식" %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">선택지:</small>
+                                            <ul class="list-unstyled ms-3">
+                                                {% for option in question.options %}
+                                                <li>{{ loop.index }}. {{ option }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                            <small class="text-success">정답: {{ question.correct_answer }}</small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button class="btn btn-sm btn-outline-primary edit-question" data-id="{{ question.id }}">
+                                            <i class="fas fa-edit"></i> 수정
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger delete-question" data-id="{{ question.id }}">
+                                            <i class="fas fa-trash"></i> 삭제
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- 문제해결 문제 -->
+                    <h6 class="text-primary mt-4">문제해결 문제</h6>
+                    <div id="problemSolvingQuestions">
+                        {% for question in problem_solving_questions %}
+                        <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6 class="card-title">{{ question.question }}</h6>
+                                        <div class="question-meta">
+                                            <span class="badge bg-primary">{{ question.category }}</span>
+                                            <span class="badge bg-secondary">{{ question.type }}</span>
+                                            <span class="badge bg-info">{{ question.difficulty }}</span>
+                                            <span class="badge bg-success">{{ question.points }}점</span>
+                                        </div>
+                                        {% if question.type == "객관식" %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">선택지:</small>
+                                            <ul class="list-unstyled ms-3">
+                                                {% for option in question.options %}
+                                                <li>{{ loop.index }}. {{ option }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                            <small class="text-success">정답: {{ question.correct_answer }}</small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button class="btn btn-sm btn-outline-primary edit-question" data-id="{{ question.id }}">
+                                            <i class="fas fa-edit"></i> 수정
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger delete-question" data-id="{{ question.id }}">
+                                            <i class="fas fa-trash"></i> 삭제
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 문제 추가 모달 -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">새 문제 추가</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addQuestionForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">카테고리</label>
+                                <select name="category" class="form-select" required>
+                                    <option value="">선택하세요</option>
+                                    <option value="Java">Java</option>
+                                    <option value="Database">Database</option>
+                                    <option value="문제해결">문제해결</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">문제 유형</label>
+                                <select name="type" class="form-select" required>
+                                    <option value="">선택하세요</option>
+                                    <option value="객관식">객관식</option>
+                                    <option value="주관식">주관식</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">난이도</label>
+                                <select name="difficulty" class="form-select" required>
+                                    <option value="">선택하세요</option>
+                                    <option value="초급">초급</option>
+                                    <option value="중급">중급</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">배점</label>
+                                <input type="number" name="points" class="form-control" min="1" max="50" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">문제 내용</label>
+                        <textarea name="question" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div id="optionsSection" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">선택지</label>
+                            <div id="optionsContainer">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">1</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 1">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">2</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 2">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">3</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 3">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">4</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 4">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">정답</label>
+                            <input type="text" name="correct_answer" class="form-control" placeholder="정답을 입력하세요">
+                        </div>
+                    </div>
+                    <div id="keywordsSection" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">키워드 (쉼표로 구분)</label>
+                            <input type="text" name="keywords" class="form-control" placeholder="예: for, int, i, 1, 10, ++">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">정답 예시</label>
+                            <input type="text" name="correct_answer" class="form-control" placeholder="정답 예시를 입력하세요">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 문제 수정 모달 -->
+<div class="modal fade" id="editQuestionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">문제 수정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editQuestionForm">
+                <input type="hidden" name="question_id" id="editQuestionId">
+                <div class="modal-body">
+                    <!-- 수정 폼 내용 (추가 폼과 동일) -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">수정</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 문제 유형에 따른 폼 표시/숨김
+document.querySelector('select[name="type"]').addEventListener('change', function() {
+    const optionsSection = document.getElementById('optionsSection');
+    const keywordsSection = document.getElementById('keywordsSection');
+    
+    if (this.value === '객관식') {
+        optionsSection.style.display = 'block';
+        keywordsSection.style.display = 'none';
+    } else if (this.value === '주관식') {
+        optionsSection.style.display = 'none';
+        keywordsSection.style.display = 'block';
+    } else {
+        optionsSection.style.display = 'none';
+        keywordsSection.style.display = 'none';
+    }
+});
+
+// 필터링 기능
+function filterQuestions() {
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const typeFilter = document.getElementById('typeFilter').value;
+    const difficultyFilter = document.getElementById('difficultyFilter').value;
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    
+    const questions = document.querySelectorAll('.question-item');
+    
+    questions.forEach(question => {
+        const category = question.dataset.category;
+        const type = question.dataset.type;
+        const difficulty = question.dataset.difficulty;
+        const questionText = question.querySelector('.card-title').textContent.toLowerCase();
+        
+        const categoryMatch = !categoryFilter || category === categoryFilter;
+        const typeMatch = !typeFilter || type === typeFilter;
+        const difficultyMatch = !difficultyFilter || difficulty === difficultyFilter;
+        const searchMatch = !searchInput || questionText.includes(searchInput);
+        
+        if (categoryMatch && typeMatch && difficultyMatch && searchMatch) {
+            question.style.display = 'block';
+        } else {
+            question.style.display = 'none';
+        }
+    });
+}
+
+// 필터 이벤트 리스너
+document.getElementById('categoryFilter').addEventListener('change', filterQuestions);
+document.getElementById('typeFilter').addEventListener('change', filterQuestions);
+document.getElementById('difficultyFilter').addEventListener('change', filterQuestions);
+document.getElementById('searchInput').addEventListener('input', filterQuestions);
+
+// 문제 추가 폼 제출
+document.getElementById('addQuestionForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    // 객관식인 경우 선택지 배열 처리
+    if (data.type === '객관식') {
+        data.options = Array.from(formData.getAll('options[]')).filter(option => option.trim() !== '');
+    }
+    
+    // 주관식인 경우 키워드 배열 처리
+    if (data.type === '주관식') {
+        data.keywords = data.keywords.split(',').map(keyword => keyword.trim()).filter(keyword => keyword !== '');
+    }
+    
+    fetch('/admin/questions/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('문제 추가에 실패했습니다: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('문제 추가 중 오류가 발생했습니다.');
+    });
+});
+
+// 문제 삭제
+document.querySelectorAll('.delete-question').forEach(button => {
+    button.addEventListener('click', function() {
+        if (confirm('정말로 이 문제를 삭제하시겠습니까?')) {
+            const questionId = this.dataset.id;
+            
+            fetch(`/admin/questions/delete/${questionId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('문제 삭제에 실패했습니다: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('문제 삭제 중 오류가 발생했습니다.');
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

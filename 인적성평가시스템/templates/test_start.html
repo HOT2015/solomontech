@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}평가 시작 - 인적성 평가시스템{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center">
+                <h3 class="card-title mb-4">
+                    <i class="fas fa-play-circle"></i> 평가 시작
+                </h3>
+                
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-info" role="alert">
+                    <h5><i class="fas fa-user"></i> 지원자 정보</h5>
+                    <p class="mb-0">
+                        <strong>이름:</strong> {{ candidate.name }} | 
+                        <strong>이메일:</strong> {{ candidate.email }} |
+                        <strong>핸드폰번호:</strong> {{ candidate.phone }}
+                    </p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-code"></i> 1단계: 기술 평가
+                                </h5>
+                                <p class="card-text">
+                                    <strong>평가 시간:</strong> 10분<br>
+                                    <strong>문제 수:</strong> 7문제<br>
+                                    • 객관식: 5문제 (Java 2개, DB 3개)<br>
+                                    • 주관식: 2문제 (코딩 문제)
+                                </p>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <a href="{{ url_for('technical_test') }}" class="btn btn-primary">
+                                    <i class="fas fa-arrow-right"></i> 기술 평가 시작
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-lightbulb"></i> 2단계: 문제해결력 평가
+                                </h5>
+                                <p class="card-text">
+                                    <strong>평가 시간:</strong> 5분<br>
+                                    <strong>문제 수:</strong> 3문제<br>
+                                    • 시나리오 기반 객관식 문제<br>
+                                    • 실무 상황 문제 해결 능력 평가
+                                </p>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <a href="{{ url_for('problem_solving_test') }}" class="btn btn-warning">
+                                    <i class="fas fa-arrow-right"></i> 문제해결력 평가 시작
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="alert alert-warning" role="alert">
+                    <h6><i class="fas fa-exclamation-triangle"></i> 평가 주의사항</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>• 평가 중에는 브라우저를 닫거나 새로고침하지 마세요</li>
+                        <li>• 시간 제한이 있으므로 신중하게 답안을 작성하세요</li>
+                        <li>• 모든 문제를 풀지 않아도 제출할 수 있습니다</li>
+                        <li>• 제출 후에는 답안을 수정할 수 없습니다</li>
+                    </ul>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+                        <i class="fas fa-sign-out-alt"></i> 로그아웃
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}인적성 평가시스템 - 메인{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4">
+                    <i class="fas fa-user-graduate"></i> 환영합니다!
+                </h2>
+                <p class="card-text mb-4">
+                    인적성 평가시스템에 오신 것을 환영합니다.<br>
+                    기술 역량과 문제 해결력을 평가하는 온라인 시스템입니다.
+                </p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-user-plus"></i> 지원자 등록
+                                </h5>
+                                <p class="card-text">
+                                    새로운 지원자로 등록하여 평가를 시작하세요.
+                                </p>
+                                <a href="{{ url_for('register') }}" class="btn btn-primary">
+                                    <i class="fas fa-arrow-right"></i> 평가 시작하기
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-chart-bar"></i> 관리자
+                                </h5>
+                                <p class="card-text">
+                                    지원자 목록과 평가 결과를 확인하세요.
+                                </p>
+                                <a href="{{ url_for('admin') }}" class="btn btn-secondary">
+                                    <i class="fas fa-cog"></i> 관리자 페이지
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-code fa-3x text-primary mb-3"></i>
+                            <h5>기술 평가</h5>
+                            <p class="text-muted">Java, Database 등 기술 지식 평가</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
+                            <h5>문제 해결력</h5>
+                            <p class="text-muted">실무 시나리오 기반 문제 해결 능력 평가</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                            <h5>자동 채점</h5>
+                            <p class="text-muted">즉시 결과 확인 및 순위 산출</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle"></i> 평가 안내
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-clock"></i> 평가 시간</h6>
+                        <ul class="list-unstyled">
+                            <li>• 기술 평가: 10분 (객관식 8분 + 주관식 2분)</li>
+                            <li>• 문제해결력 평가: 5분</li>
+                            <li>• 총 평가 시간: 15분</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-list-ol"></i> 문제 구성</h6>
+                        <ul class="list-unstyled">
+                            <li>• 기술 객관식: 10문제 (Java 5개, DB 5개)</li>
+                            <li>• 기술 주관식: 2문제 (코딩 문제)</li>
+                            <li>• 문제해결력: 3문제 (시나리오 기반)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

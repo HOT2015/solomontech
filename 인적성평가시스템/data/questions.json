@@ -1,0 +1,173 @@
+{
+  "technical_questions": [
+    {
+      "id": "tech_1",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "Java에서 변수를 선언할 때 사용하는 키워드는?",
+      "options": [
+        "var",
+        "let",
+        "int",
+        "variable"
+      ],
+      "correct_answer": "int",
+      "points": 10
+    },
+    {
+      "id": "tech_2",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "Java에서 상속을 나타내는 키워드는?",
+      "options": [
+        "extends",
+        "implements",
+        "inherits",
+        "super"
+      ],
+      "correct_answer": "extends",
+      "points": 10
+    },
+    {
+      "id": "tech_3",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "SQL에서 데이터를 조회할 때 사용하는 명령어는?",
+      "options": [
+        "SELECT",
+        "GET",
+        "FETCH",
+        "RETRIEVE"
+      ],
+      "correct_answer": "SELECT",
+      "points": 10
+    },
+    {
+      "id": "tech_4",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "SQL에서 데이터를 삽입할 때 사용하는 명령어는?",
+      "options": [
+        "INSERT",
+        "ADD",
+        "CREATE",
+        "PUT"
+      ],
+      "correct_answer": "INSERT",
+      "points": 10
+    },
+    {
+      "id": "tech_5",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "SQL에서 두 테이블을 연결할 때 사용하는 절은?",
+      "options": [
+        "JOIN",
+        "CONNECT",
+        "LINK",
+        "MERGE"
+      ],
+      "correct_answer": "JOIN",
+      "points": 10
+    },
+    {
+      "id": "tech_6",
+      "category": "Java",
+      "type": "주관식",
+      "difficulty": "초급",
+      "question": "Java에서 1부터 10까지의 숫자를 출력하는 for문을 작성하세요.",
+      "correct_answer": "for(int i=1; i<=10; i++)",
+      "keywords": [
+        "for",
+        "int",
+        "i",
+        "1",
+        "10",
+        "++"
+      ],
+      "points": 20
+    },
+    {
+      "id": "tech_7",
+      "category": "Java",
+      "type": "주관식",
+      "difficulty": "중급",
+      "question": "Java에서 문자열 'Hello'를 출력하는 코드를 작성하세요.",
+      "correct_answer": "System.out.println('Hello')",
+      "keywords": [
+        "System",
+        "out",
+        "println",
+        "Hello"
+      ],
+      "points": 20
+    },
+    {
+      "id": "tech_8",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "테스트문제입니다.",
+      "points": 2,
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "correct_answer": ""
+    }
+  ],
+  "problem_solving_questions": [
+    {
+      "id": "ps_1",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "사용자 로그인 시스템에서 비밀번호를 안전하게 저장하는 가장 좋은 방법은?",
+      "options": [
+        "평문으로 저장",
+        "단순 암호화",
+        "해시 함수 사용",
+        "압축 후 저장"
+      ],
+      "correct_answer": "해시 함수 사용",
+      "points": 15
+    },
+    {
+      "id": "ps_2",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "웹사이트 로딩 속도를 개선하는 가장 효과적인 방법은?",
+      "options": [
+        "이미지 크기 증가",
+        "CSS 파일 분리",
+        "JavaScript 파일 병합",
+        "데이터베이스 쿼리 최적화"
+      ],
+      "correct_answer": "데이터베이스 쿼리 최적화",
+      "points": 15
+    },
+    {
+      "id": "ps_3",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "사용자가 입력한 데이터의 유효성을 검사하는 가장 좋은 시점은?",
+      "options": [
+        "서버에서만",
+        "클라이언트에서만",
+        "클라이언트와 서버 모두",
+        "검사하지 않음"
+      ],
+      "correct_answer": "클라이언트와 서버 모두",
+      "points": 15
+    }
+  ]
+}
