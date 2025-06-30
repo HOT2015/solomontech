@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-from models import Candidate, Question, TestResult, DataManager
+from models import Candidate, Question, TestResult, DataManager, Department
 import os
 from datetime import datetime, timedelta
 import uuid
@@ -8,6 +8,7 @@ from docx import Document
 from werkzeug.utils import secure_filename
 import tempfile
 import requests
+import json
 
 app = Flask(__name__)
 app.secret_key = '인적성평가시스템_시크릿키_2024'  # 세션 관리를 위한 시크릿 키
@@ -27,6 +28,22 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
 # 업로드 폴더 생성
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+RANDOM_CONFIG_FILE = os.path.join('data', 'random_config.json')
+
+def load_random_config():
+    """랜덤 출제 개수 설정 로드"""
+    default = {"java_count": 10, "db_count": 3}
+    try:
+        with open(RANDOM_CONFIG_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return default
+
+def save_random_config(config):
+    """랜덤 출제 개수 설정 저장"""
+    with open(RANDOM_CONFIG_FILE, 'w', encoding='utf-8') as f:
+        json.dump(config, f, ensure_ascii=False, indent=2)
 
 def allowed_file(filename):
     """허용된 파일 확장자인지 확인"""
@@ -51,6 +68,10 @@ def parse_excel_file(file_path):
                 'question': str(row.iloc[3]).strip(),
                 'points': int(row.iloc[4]) if not pd.isna(row.iloc[4]) else 10
             }
+            
+            # Java, Database 카테고리 외에는 건너뛰기
+            if question_data['category'] not in ['Java', 'Database']:
+                continue
             
             # 객관식인 경우
             if question_data['type'] == '객관식':
@@ -85,10 +106,12 @@ def parse_word_file(file_path):
             if not text:
                 continue
             
-            # 문제 시작 확인 (카테고리, 유형, 난이도가 포함된 행)
-            if any(keyword in text for keyword in ['Java', 'Database', '문제해결', '객관식', '주관식', '초급', '중급']):
+            # 문제 시작 확인 (Java, Database 카테고리만 허용)
+            if any(keyword in text for keyword in ['Java', 'Database', '객관식', '주관식', '초급', '중급']):
                 if current_question:
-                    questions.append(current_question)
+                    # 이전 문제 저장 전 유효성 검사
+                    if current_question.get('category') in ['Java', 'Database']:
+                        questions.append(current_question)
                 
                 # 새로운 문제 시작
                 parts = text.split('|')
@@ -146,6 +169,10 @@ def register():
         name = request.form.get('name')
         email = request.form.get('email')
         phone = request.form.get('phone')
+        department_id = request.form.get('department_id')
+        if not department_id:
+            departments = data_manager.load_departments()
+            return render_template('register.html', error='부서를 반드시 선택해야 합니다.', departments=departments)
         if name and email and phone:
             candidates = data_manager.get_all_candidates()
             matched = None
@@ -154,26 +181,32 @@ def register():
                     matched = candidate
                     break
             if not matched:
-                return render_template('register.html', error="사전에 등록된 이름이 아닙니다. 관리자에게 문의하세요.")
+                departments = data_manager.load_departments()
+                return render_template('register.html', error="사전에 등록된 이름이 아닙니다. 관리자에게 문의하세요.", departments=departments)
             today = datetime.now().strftime('%Y-%m-%d')
             if not hasattr(matched, 'access_date') or not matched.access_date:
-                return render_template('register.html', error="접속 가능 날짜가 설정되지 않았습니다. 관리자에게 문의하세요.")
+                departments = data_manager.load_departments()
+                return render_template('register.html', error="접속 가능 날짜가 설정되지 않았습니다. 관리자에게 문의하세요.", departments=departments)
             if matched.access_date != today:
-                return render_template('register.html', error=f"오늘({today})은 접속 가능 날짜가 아닙니다. (응시 가능일: {matched.access_date})")
-            
+                departments = data_manager.load_departments()
+                return render_template('register.html', error=f"오늘({today})은 접속 가능 날짜가 아닙니다. (응시 가능일: {matched.access_date})", departments=departments)
+            # 부서 미지정 지원자라면 기본 부서 할당
+            if not matched.department_id:
+                matched.department_id = department_id or 'dept_1'
+                data_manager.update_candidate(matched)
             # 세션에 지원자 정보 저장
             session['candidate_id'] = matched.id
             session['candidate_name'] = matched.name
             session['candidate_email'] = email
             session['candidate_phone'] = phone
-            
             # 지원자 데이터에 이메일과 핸드폰번호 업데이트
             data_manager.update_candidate_contact_info(matched.id, email, phone)
-            
             return redirect(url_for('test_start'))
         else:
-            return render_template('register.html', error="이름, 이메일, 핸드폰번호를 모두 입력해주세요.")
-    return render_template('register.html')
+            departments = data_manager.load_departments()
+            return render_template('register.html', error="이름, 이메일, 핸드폰번호를 모두 입력해주세요.", departments=departments)
+    departments = data_manager.load_departments()
+    return render_template('register.html', departments=departments)
 
 @app.route('/test/start')
 def test_start():
@@ -185,20 +218,37 @@ def test_start():
     if not candidate:
         return redirect(url_for('register'))
     
-    # 평가완료시간 체크 - 마감 날짜가 지났는지 확인
-    if data_manager.is_test_deadline_passed(session['candidate_id']):
-        # 마감 날짜만 안내
-        deadline_info = f" (마감일: {candidate.test_deadline[:10]})" if candidate.test_deadline else ""
-        return render_template('test_start.html', 
-                             candidate=candidate, 
-                             error=f"평가 완료일이 지났습니다. 관리자에게 문의하세요.{deadline_info}")
-    
     # 이미 평가를 완료했는지 확인
     existing_result = data_manager.get_result(session['candidate_id'])
     if existing_result:
         return redirect(url_for('result'))
     
-    return render_template('test_start.html', candidate=candidate)
+    # -------------------------------------------------------------
+    # 시험 출제 로직: 부서별 랜덤 문제 자동 할당
+    # -------------------------------------------------------------
+    # 지원자에게 할당된 문제가 없는 경우에만 새로 할당
+    if not candidate.selected_questions:
+        all_questions = data_manager.load_questions()
+        department_questions = [q for q in all_questions if q.department_id == candidate.department_id]
+        java_objective = [q for q in department_questions if q.category == 'Java' and q.type == '객관식']
+        db_objective = [q for q in department_questions if q.category == 'Database' and q.type == '객관식']
+        # 출제 개수 설정값 적용
+        random_config = load_random_config()
+        java_count = random_config.get('java_count', 10)
+        db_count = random_config.get('db_count', 3)
+        import random
+        selected_java = random.sample(java_objective, min(len(java_objective), java_count))
+        selected_db = random.sample(db_objective, min(len(db_objective), db_count))
+        selected_ids = [q.id for q in selected_java] + [q.id for q in selected_db]
+        candidate.selected_questions = selected_ids
+        data_manager.update_candidate(candidate)
+
+    # 평가 시간 및 기타 정보 설정
+    session['test_duration'] = candidate.test_duration
+    session.pop('technical_answers', None)
+    
+    # 모든 문제는 technical_test에서 처리
+    return redirect(url_for('technical_test'))
 
 @app.route('/test/technical')
 def technical_test():
@@ -211,103 +261,38 @@ def technical_test():
     if not candidate:
         return redirect(url_for('register'))
     
-    # 평가 시작 시 세션 초기화
-    session['current_step'] = 'technical'
-    session.pop('technical_answers', None)  # 이전 답안 초기화
+    # 선택된 문제 또는 전체 문제를 가져옴
+    questions = data_manager.get_candidate_questions(session['candidate_id'])
     
-    # 세션에 문제풀이 시간 저장
-    session['test_duration'] = candidate.test_duration
-    
-    # 지원자별 출제 문제 로드
-    all_questions = data_manager.get_candidate_questions(session['candidate_id'])
-    technical_questions = [q for q in all_questions if q.category in ['Java', 'Database']]
-    
-    # 지원자 정보와 문제를 템플릿에 전달
-    return render_template('technical_test.html', 
-                         candidate=candidate, 
-                         questions=technical_questions)
-
-@app.route('/test/problem_solving')
-def problem_solving_test():
-    """문제해결력 평가 페이지"""
-    if 'candidate_id' not in session:
-        return redirect(url_for('register'))
-    
-    # 1단계에서 넘어온 경우에만 접근 허용
-    if session.get('current_step') != 'problem_solving':
-        return redirect(url_for('technical_test'))
-    
-    # 지원자 정보 가져오기
-    candidate = data_manager.get_candidate(session['candidate_id'])
-    if not candidate:
-        return redirect(url_for('register'))
-    
-    # 세션에 문제풀이 시간 저장
-    session['test_duration'] = candidate.test_duration
-    
-    # 지원자별 출제 문제 로드
-    all_questions = data_manager.get_candidate_questions(session['candidate_id'])
-    problem_solving_questions = [q for q in all_questions if q.category == '문제해결']
-    
-    # 지원자 정보와 문제를 템플릿에 전달
-    return render_template('problem_solving_test.html', 
-                         candidate=candidate, 
-                         questions=problem_solving_questions)
+    return render_template('technical_test.html', questions=questions, time_limit=candidate.test_duration * 60, candidate=candidate)
 
 @app.route('/submit_answers', methods=['POST'])
 def submit_answers():
-    """답안 제출 및 채점"""
+    """답안 제출 및 채점 (1단계 기술평가만 존재)"""
     if 'candidate_id' not in session:
         return jsonify({'error': '세션이 만료되었습니다.'}), 400
-    
     candidate_id = session['candidate_id']
-    current_step = request.form.get('current_step', 'technical')  # 현재 단계 확인
-    
     # 답안 수집
     answers = {}
     for key, value in request.form.items():
         if key.startswith('question_'):
             question_id = key.replace('question_', '')
             answers[question_id] = value
-    
-    # 현재 단계에 따라 처리
-    if current_step == 'technical':
-        # 1단계(기술 평가) 완료 - 임시 저장 후 2단계로 이동
-        session['technical_answers'] = answers
-        session['current_step'] = 'problem_solving'
-        return redirect(url_for('problem_solving_test'))
-    
-    elif current_step == 'problem_solving':
-        # 2단계(문제해결력 평가) 완료 - 전체 평가 결과 생성
-        technical_answers = session.get('technical_answers', {})
-        
-        # 전체 답안 합치기
-        all_answers = {**technical_answers, **answers}
-        
-        # 평가 결과 생성
-        result = TestResult(candidate_id)
-        for question_id, answer in all_answers.items():
-            result.add_answer(question_id, answer)
-        
-        # 모든 문제 로드하여 점수 계산
-        all_questions = data_manager.load_questions()
-        result.calculate_score(all_questions)
-        
-        # 결과 저장
-        data_manager.save_result(result)
-        
-        # 순위 계산
-        data_manager.calculate_ranks()
-        
-        # 세션 정리
-        session.pop('technical_answers', None)
-        session.pop('current_step', None)
-        
-        return redirect(url_for('result'))
-    
-    else:
-        # 잘못된 단계 정보
-        return jsonify({'error': '잘못된 평가 단계입니다.'}), 400
+    # 평가 결과 생성
+    result = TestResult(candidate_id)
+    for question_id, answer in answers.items():
+        result.add_answer(question_id, answer)
+    # 모든 문제 로드하여 점수 계산
+    all_questions = data_manager.load_questions()
+    result.calculate_score(all_questions)
+    # 결과 저장
+    data_manager.save_result(result)
+    # 순위 계산
+    data_manager.calculate_ranks()
+    # 세션 정리
+    session.pop('technical_answers', None)
+    session.pop('current_step', None)
+    return redirect(url_for('result'))
 
 @app.route('/result')
 def result():
@@ -335,9 +320,26 @@ def result():
 
 @app.route('/admin')
 def admin():
-    """관리자 페이지 - 지원자 목록 및 결과 조회"""
+    """관리자 페이지 - 대시보드"""
     candidates = data_manager.get_all_candidates()
     results = data_manager.get_all_results()
+    departments = data_manager.load_departments()
+    questions = data_manager.load_questions()
+    # 부서 미지정 문제 목록
+    unassigned_questions = [q for q in questions if not q.department_id]
+    
+    # 날짜 포맷 변경 (ISO -> YYYY-MM-DD HH:MM:SS) 및 None 체크
+    for c in candidates:
+        if c.created_at:
+            try:
+                c.created_at_formatted = datetime.fromisoformat(c.created_at).strftime('%Y-%m-%d %H:%M:%S')
+            except (ValueError, TypeError):
+                c.created_at_formatted = "N/A"
+        else:
+            c.created_at_formatted = "N/A"
+
+    # 대시보드 데이터 계산
+    total_candidates = len(candidates)
     
     # 지원자별 결과 매핑
     candidate_results = {}
@@ -349,67 +351,26 @@ def admin():
                 'result': result
             }
     
-    return render_template('admin.html', candidates=candidates, candidate_results=candidate_results)
+    return render_template('admin.html', candidates=candidates, candidate_results=candidate_results, departments=departments, unassigned_questions=unassigned_questions, questions=[q.to_dict() for q in questions])
 
 @app.route('/admin/candidate/delete/<candidate_id>', methods=['DELETE'])
 def delete_candidate(candidate_id):
     """지원자 삭제"""
-    try:
-        print(f"삭제 요청 받음: candidate_id = {candidate_id}")  # 디버깅 로그
-        
-        # 지원자 존재 여부 확인
-        candidate = data_manager.get_candidate(candidate_id)
-        if not candidate:
-            print(f"지원자를 찾을 수 없음: {candidate_id}")  # 디버깅 로그
-            return jsonify({'success': False, 'message': '지원자를 찾을 수 없습니다.'})
-        
-        print(f"지원자 발견: {candidate.name}")  # 디버깅 로그
-        
-        # 지원자 삭제
-        data_manager.delete_candidate(candidate_id)
-        print(f"지원자 삭제 완료: {candidate_id}")  # 디버깅 로그
-        
-        # 관련 결과도 삭제
-        data_manager.delete_result(candidate_id)
-        print(f"평가 결과 삭제 완료: {candidate_id}")  # 디버깅 로그
-        
-        return jsonify({'success': True, 'message': '지원자가 삭제되었습니다.'})
-    except Exception as e:
-        print(f"삭제 중 오류 발생: {str(e)}")  # 디버깅 로그
-        return jsonify({'success': False, 'message': str(e)})
-
-@app.route('/admin/candidate/deadline/<candidate_id>', methods=['PUT'])
-def set_candidate_deadline(candidate_id):
-    """지원자 평가 완료시간 설정"""
-    try:
-        data = request.get_json()
-        deadline = data.get('deadline')
-        
-        if deadline:
-            data_manager.set_candidate_deadline(candidate_id, deadline)
-            return jsonify({'success': True, 'message': '평가 완료시간이 설정되었습니다.'})
-        else:
-            return jsonify({'success': False, 'message': '완료시간을 입력해주세요.'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
+    data_manager.delete_candidate(candidate_id)
+    data_manager.delete_result(candidate_id)
+    return jsonify(success=True, message="지원자가 삭제되었습니다.")
 
 @app.route('/admin/questions')
 def question_manage():
     """문제 관리 페이지"""
-    questions_data = data_manager._load_json(data_manager.questions_file)
-    technical_questions = questions_data.get("technical_questions", [])
-    problem_solving_questions = questions_data.get("problem_solving_questions", [])
-    
-    return render_template('question_manage.html', 
-                         technical_questions=technical_questions,
-                         problem_solving_questions=problem_solving_questions)
+    questions = data_manager.load_questions()
+    departments = data_manager.load_departments()
+    return render_template('question_manage.html', technical_questions=questions, departments=departments)
 
 @app.route('/admin/questions/add', methods=['POST'])
 def add_question():
-    """문제 추가"""
     try:
         data = request.get_json()
-        # 새 문제 ID 생성
         if data['category'] in ['Java', 'Database']:
             existing_questions = data_manager._load_json(data_manager.questions_file)["technical_questions"]
             new_id = f"tech_{len(existing_questions) + 1}"
@@ -427,40 +388,20 @@ def add_question():
             else:
                 question_data['keywords'] = data['keywords']
                 question_data['correct_answer'] = data['correct_answer']
-            # 기술 문제에 추가
             questions_data = data_manager._load_json(data_manager.questions_file)
             questions_data["technical_questions"].append(question_data)
-        else:  # 문제해결
-            existing_questions = data_manager._load_json(data_manager.questions_file)["problem_solving_questions"]
-            new_id = f"ps_{len(existing_questions) + 1}"
-            question_data = {
-                'id': new_id,
-                'category': data['category'],
-                'type': data['type'],
-                'difficulty': data['difficulty'],
-                'question': data['question'],
-                'points': int(data['points']),
-                'options': data.get('options', []),
-                'correct_answer': data['correct_answer']
-            }
-            if data['type'] == '주관식':
-                question_data['keywords'] = data['keywords']
-            # 문제해결 문제에 추가
-            questions_data = data_manager._load_json(data_manager.questions_file)
-            questions_data["problem_solving_questions"].append(question_data)
-        data_manager._save_json(data_manager.questions_file, questions_data)
-        return jsonify({'success': True, 'message': '문제가 추가되었습니다.'})
+            data_manager._save_json(data_manager.questions_file, questions_data)
+            return jsonify({'success': True, 'message': '문제가 추가되었습니다.'})
+        else:
+            return jsonify({'success': False, 'message': '카테고리는 Java 또는 Database만 허용됩니다.'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/admin/questions/edit/<question_id>', methods=['PUT'])
 def edit_question(question_id):
-    """문제 수정"""
     try:
         data = request.get_json()
         questions_data = data_manager._load_json(data_manager.questions_file)
-        
-        # 기술 문제에서 찾기
         for question in questions_data["technical_questions"]:
             if question['id'] == question_id:
                 question.update({
@@ -470,60 +411,28 @@ def edit_question(question_id):
                     'question': data['question'],
                     'points': int(data['points'])
                 })
-                
                 if data['type'] == '객관식':
                     question['options'] = data['options']
                     question['correct_answer'] = data['correct_answer']
                 else:
                     question['keywords'] = data['keywords']
                     question['correct_answer'] = data['correct_answer']
-                
                 data_manager._save_json(data_manager.questions_file, questions_data)
                 return jsonify({'success': True, 'message': '문제가 수정되었습니다.'})
-        
-        # 문제해결 문제에서 찾기
-        for question in questions_data["problem_solving_questions"]:
-            if question['id'] == question_id:
-                question.update({
-                    'category': data['category'],
-                    'type': data['type'],
-                    'difficulty': data['difficulty'],
-                    'question': data['question'],
-                    'points': int(data['points']),
-                    'options': data['options'],
-                    'correct_answer': data['correct_answer']
-                })
-                
-                data_manager._save_json(data_manager.questions_file, questions_data)
-                return jsonify({'success': True, 'message': '문제가 수정되었습니다.'})
-        
         return jsonify({'success': False, 'message': '문제를 찾을 수 없습니다.'})
-        
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/admin/questions/delete/<question_id>', methods=['DELETE'])
 def delete_question(question_id):
-    """문제 삭제"""
     try:
         questions_data = data_manager._load_json(data_manager.questions_file)
-        
-        # 기술 문제에서 삭제
         for i, question in enumerate(questions_data["technical_questions"]):
             if question['id'] == question_id:
                 del questions_data["technical_questions"][i]
                 data_manager._save_json(data_manager.questions_file, questions_data)
                 return jsonify({'success': True, 'message': '문제가 삭제되었습니다.'})
-        
-        # 문제해결 문제에서 삭제
-        for i, question in enumerate(questions_data["problem_solving_questions"]):
-            if question['id'] == question_id:
-                del questions_data["problem_solving_questions"][i]
-                data_manager._save_json(data_manager.questions_file, questions_data)
-                return jsonify({'success': True, 'message': '문제가 삭제되었습니다.'})
-        
         return jsonify({'success': False, 'message': '문제를 찾을 수 없습니다.'})
-        
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
@@ -578,43 +487,21 @@ def api_results():
 
 @app.route('/api/random_questions', methods=['GET'])
 def api_random_questions_get():
-    """카테고리별 랜덤 문제 선택 API (GET)"""
-    try:
-        java_count = int(request.args.get('java', 0))
-        database_count = int(request.args.get('database', 0))
-        problem_solving_count = int(request.args.get('problem_solving', 0))
-        selected_questions = []
-        # Java 문제 랜덤 선택
-        if java_count > 0:
-            java_questions = data_manager.get_questions_by_category('Java')
-            if java_questions:
-                import random
-                selected_java = random.sample(java_questions, min(java_count, len(java_questions)))
-                selected_questions.extend([q.id for q in selected_java])
-        # Database 문제 랜덤 선택
-        if database_count > 0:
-            database_questions = data_manager.get_questions_by_category('Database')
-            if database_questions:
-                import random
-                selected_database = random.sample(database_questions, min(database_count, len(database_questions)))
-                selected_questions.extend([q.id for q in selected_database])
-        # 문제해결 문제 랜덤 선택
-        if problem_solving_count > 0:
-            problem_solving_questions = data_manager.get_questions_by_category('문제해결')
-            if problem_solving_questions:
-                import random
-                selected_problem_solving = random.sample(problem_solving_questions, min(problem_solving_count, len(problem_solving_questions)))
-                selected_questions.extend([q.id for q in selected_problem_solving])
-        return jsonify({
-            'success': True,
-            'selected_questions': selected_questions,
-            'total_count': len(selected_questions)
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'랜덤 문제 선택 중 오류가 발생했습니다: {str(e)}'
-        }), 500
+    """카테고리별로 랜덤 문제를 가져오는 API"""
+    category = request.args.get('category')
+    count = request.args.get('count', default=5, type=int)
+
+    # 'Java', 'Database' 카테고리가 아니면 전체에서 랜덤 선택
+    if category not in ['Java', 'Database']:
+        category = None
+
+    question_ids = data_manager.get_random_questions(count=count, category=category)
+    questions = data_manager.load_questions()
+    
+    # ID에 해당하는 문제 객체를 찾아 반환
+    selected_questions = [q for q in questions if q.id in question_ids]
+    
+    return jsonify([q.to_dict() for q in selected_questions])
 
 @app.route('/api/candidate/<candidate_id>/questions')
 def api_candidate_questions(candidate_id):
@@ -648,49 +535,46 @@ def admin_answer_detail(candidate_id):
     result = data_manager.get_result(candidate_id)
     if not candidate or not result:
         return redirect(url_for('admin'))
-    
-    # 모든 문제 불러오기
+    # 지원자에게 출제된 문제만 불러오기
     all_questions = data_manager.load_questions()
-    
-    # 답변 매핑 - 모든 문제에 대해 처리
+    selected_ids = getattr(candidate, 'selected_questions', [])
+    selected_questions = [q for q in all_questions if q.id in selected_ids]
+    # 답변 매핑 - 출제된 문제에 대해서만 처리
     answers = []
-    for question in all_questions:
-        answer = result.answers.get(question.id, '')  # 답변하지 않은 경우 빈 문자열
-        if answer:  # 답변한 경우
+    for question in selected_questions:
+        answer = result.answers.get(question.id, '')
+        if answer:
             answers.append({
                 'question': question,
                 'answer': answer,
                 'is_correct': question.is_correct(answer),
                 'answered': True
             })
-        else:  # 답변하지 않은 경우
+        else:
             answers.append({
                 'question': question,
                 'answer': '',
                 'is_correct': False,
                 'answered': False
             })
-    
     return render_template('admin_answer_detail.html', candidate=candidate, result=result, answers=answers)
 
 @app.route('/admin/candidate/add', methods=['POST'])
 def add_candidate():
+    """관리자가 지원자 사전 등록"""
     data = request.get_json()
     name = data.get('name')
     access_date = data.get('access_date')
-    test_duration = int(data.get('test_duration', 10))
-    selected_questions = data.get('selected_questions', [])  # 출제할 문제 ID 목록
+    test_duration = data.get('test_duration', 10)
     
     if not name or not access_date:
-        return {'success': False, 'message': '이름, 접속 가능 날짜는 필수입니다.'}
+        return jsonify(success=False, message="이름과 접속 가능 날짜를 모두 입력해야 합니다.")
     
-    for c in data_manager.get_all_candidates():
-        if c.name == name:
-            return {'success': False, 'message': '이미 등록된 이름입니다.'}
-    
-    candidate = Candidate(name=name, access_date=access_date, test_duration=test_duration, selected_questions=selected_questions)
+    # Candidate 생성 시 'test_deadline' 인자 없음
+    candidate = Candidate(name=name, access_date=access_date, test_duration=int(test_duration))
     data_manager.save_candidate(candidate)
-    return {'success': True, 'message': '지원자가 등록되었습니다.'}
+    
+    return jsonify(success=True, message="지원자가 등록되었습니다.", candidate=candidate.to_dict())
 
 @app.route('/api/check_name', methods=['POST'])
 def check_name():
@@ -743,37 +627,30 @@ def check_name():
 @app.route('/admin/candidate/edit/<candidate_id>', methods=['PUT'])
 def edit_candidate(candidate_id):
     """지원자 정보 수정"""
+    data = request.get_json() if request.is_json else request.form
+    name = data.get('name')
+    access_date = data.get('access_date')
+    test_duration = data.get('test_duration')
+    department_id = data.get('department_id')
+
+    if not name or not access_date or not test_duration or not department_id:
+        return jsonify(success=False, message="모든 필드를 입력해야 합니다.")
+    
     try:
-        data = request.get_json()
-        name = data.get('name', '').strip()
-        access_date = data.get('access_date')
-        test_duration = int(data.get('test_duration', 10))
-        selected_questions = data.get('selected_questions', [])  # 출제할 문제 ID 목록
-        
-        if not name or not access_date:
-            return jsonify({'success': False, 'message': '이름과 접속 가능 날짜는 필수입니다.'})
-        
-        # 지원자 존재 여부 확인
-        candidate = data_manager.get_candidate(candidate_id)
-        if not candidate:
-            return jsonify({'success': False, 'message': '지원자를 찾을 수 없습니다.'})
-        
-        # 이름 중복 확인 (자신을 제외하고)
-        candidates = data_manager.get_all_candidates()
-        for c in candidates:
-            if c.id != candidate_id and c.name == name:
-                return jsonify({'success': False, 'message': '이미 등록된 이름입니다.'})
-        
-        # 지원자 정보 수정
-        data_manager.update_candidate(candidate_id, name, access_date, test_duration)
-        
-        # 선택된 문제 설정
-        data_manager.set_candidate_questions(candidate_id, selected_questions)
-        
-        return jsonify({'success': True, 'message': '지원자 정보가 수정되었습니다.'})
-        
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
+        # data_manager.update_candidate 호출 시 'test_deadline' 없음
+        updated_candidate = data_manager.update_candidate(
+            candidate_id, 
+            name, 
+            access_date, 
+            int(test_duration),
+            department_id
+        )
+        if updated_candidate:
+            return jsonify(success=True, message="지원자 정보가 수정되었습니다.", candidate=updated_candidate.to_dict())
+        else:
+            return jsonify(success=False, message="지원자를 찾을 수 없습니다.")
+    except (ValueError, TypeError):
+        return jsonify(success=False, message="잘못된 데이터 형식입니다.")
 
 @app.route('/admin/questions/upload', methods=['POST'])
 def upload_questions():
@@ -831,7 +708,6 @@ def upload_questions():
         # 기존 문제 로드
         questions_data = data_manager._load_json(data_manager.questions_file)
         technical_questions = questions_data.get("technical_questions", [])
-        problem_solving_questions = questions_data.get("problem_solving_questions", [])
         
         added_count = 0
         updated_count = 0
@@ -858,13 +734,6 @@ def upload_questions():
                             target_list = technical_questions
                             target_index = i
                             break
-                elif question['category'] == '문제해결':
-                    for i, q in enumerate(problem_solving_questions):
-                        if q['question'] == question['question']:
-                            existing_question = q
-                            target_list = problem_solving_questions
-                            target_index = i
-                            break
                 
                 if existing_question:
                     if overwrite:
@@ -879,8 +748,6 @@ def upload_questions():
                     # 새 문제 추가
                     if question['category'] in ['Java', 'Database']:
                         technical_questions.append(question)
-                    elif question['category'] == '문제해결':
-                        problem_solving_questions.append(question)
                     added_count += 1
                 
             except Exception as e:
@@ -889,7 +756,6 @@ def upload_questions():
         
         # 파일 저장
         questions_data["technical_questions"] = technical_questions
-        questions_data["problem_solving_questions"] = problem_solving_questions
         data_manager._save_json(data_manager.questions_file, questions_data)
         
         return jsonify({
@@ -1077,6 +943,141 @@ def update_company_settings():
         
     except Exception as e:
         return jsonify({'success': False, 'message': f'설정 업데이트 중 오류가 발생했습니다: {str(e)}'})
+
+# ===============================================
+# 지원자-문제 매칭 페이지 라우트
+# ===============================================
+@app.route('/admin/match')
+def candidate_question_match():
+    """지원자와 문제를 수동으로 매칭하는 페이지"""
+    all_candidates = data_manager.get_all_candidates()
+    all_questions = data_manager.load_questions()
+    all_departments = data_manager.load_departments()
+    
+    # 부서 이름을 id에 매핑시켜두면 템플릿에서 사용하기 편리함
+    department_map = {d.id: d.name for d in all_departments}
+
+    return render_template('candidate_question_match.html',
+                           candidates=all_candidates,
+                           questions=all_questions,
+                           departments=all_departments,
+                           department_map=department_map)
+
+@app.route('/api/candidate/<candidate_id>/questions/update', methods=['POST'])
+def update_candidate_questions(candidate_id):
+    """API: 특정 지원자에게 할당된 문제 목록을 업데이트"""
+    data = request.get_json()
+    question_ids = data.get('question_ids', [])
+    
+    candidate = data_manager.get_candidate(candidate_id)
+    if not candidate:
+        return jsonify(success=False, message="지원자를 찾을 수 없습니다."), 404
+        
+    candidate.selected_questions = question_ids
+    data_manager.update_candidate(candidate)
+    
+    return jsonify(success=True, message="문제가 성공적으로 할당되었습니다.")
+
+@app.route('/admin/departments/add', methods=['POST'])
+def add_department():
+    """새 부서 추가 API (문제 할당 포함)"""
+    data = request.get_json() if request.is_json else request.form
+    name = data.get('name', '').strip()
+    assign_questions = data.getlist('assign_questions') if not request.is_json else data.get('assign_questions', [])
+    if not name:
+        return jsonify(success=False, message="부서명을 입력해주세요."), 400
+    departments = data_manager.load_departments()
+    if any(d.name == name for d in departments):
+        return jsonify(success=False, message="이미 존재하는 부서명입니다."), 409
+    department = Department(name)
+    data_manager.save_department(department)
+    # 선택된 문제들 부서 할당
+    if assign_questions:
+        questions = data_manager.load_questions()
+        for q in questions:
+            if q.id in assign_questions:
+                q.department_id = department.id
+        data_manager.save_all_questions(questions)
+    return jsonify(success=True, message="부서가 추가되었습니다.", department=department.to_dict())
+
+@app.route('/admin/departments/assign_questions', methods=['POST'])
+def assign_questions_to_department():
+    """특정 부서에 문제를 할당하는 API"""
+    data = request.get_json() if request.is_json else request.form
+    department_id = data.get('department_id')
+    question_ids = data.get('question_ids')
+    if not department_id or not question_ids:
+        return jsonify(success=False, message="부서와 문제를 모두 선택해야 합니다."), 400
+    if isinstance(question_ids, str):
+        question_ids = [question_ids]
+    questions = data_manager.load_questions()
+    for q in questions:
+        if q.id in question_ids:
+            q.department_id = department_id
+        elif q.department_id == department_id and q.id not in question_ids:
+            q.department_id = None  # 할당 해제
+    data_manager.save_all_questions(questions)
+    return jsonify(success=True, message="문제가 성공적으로 할당되었습니다.")
+
+@app.route('/admin/departments/delete/<department_id>', methods=['DELETE'])
+def delete_department_route(department_id):
+    """부서 삭제 API"""
+    try:
+        data_manager.delete_department(department_id)
+        return jsonify(success=True, message="부서가 삭제되었습니다.")
+    except Exception as e:
+        return jsonify(success=False, message=str(e)), 500
+
+@app.route('/admin/questions/unassign/<question_id>', methods=['PUT'])
+def unassign_question_department(question_id):
+    """문제의 부서 할당만 해제하는 API"""
+    try:
+        questions = data_manager.load_questions()
+        found = False
+        for q in questions:
+            if q.id == question_id:
+                q.department_id = None
+                found = True
+                break
+        if found:
+            data_manager.save_all_questions(questions)
+            return jsonify({'success': True, 'message': '문제의 부서 할당이 해제되었습니다.'})
+        else:
+            return jsonify({'success': False, 'message': '문제를 찾을 수 없습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/candidate/<candidate_id>/questions/randomize', methods=['POST'])
+def randomize_candidate_questions(candidate_id):
+    """지원자별 문제 세트를 JAVA 객관식 10, DB 객관식 3개로 다시 랜덤 할당하는 API"""
+    candidate = data_manager.get_candidate(candidate_id)
+    if not candidate:
+        return jsonify(success=False, message="지원자를 찾을 수 없습니다."), 404
+    all_questions = data_manager.load_questions()
+    # 지원자 부서에 해당하는 문제만 필터링
+    department_questions = [q for q in all_questions if q.department_id == candidate.department_id]
+    java_objective = [q for q in department_questions if q.category == 'Java' and q.type == '객관식']
+    db_objective = [q for q in department_questions if q.category == 'Database' and q.type == '객관식']
+    import random
+    selected_java = random.sample(java_objective, min(len(java_objective), 10))
+    selected_db = random.sample(db_objective, min(len(db_objective), 3))
+    selected_ids = [q.id for q in selected_java] + [q.id for q in selected_db]
+    candidate.selected_questions = selected_ids
+    data_manager.update_candidate(candidate)
+    return jsonify(success=True, selected_questions=selected_ids)
+
+@app.route('/api/random_config', methods=['GET'])
+def get_random_config():
+    return jsonify(load_random_config())
+
+@app.route('/api/random_config', methods=['POST'])
+def set_random_config():
+    data = request.get_json()
+    java_count = int(data.get('java_count', 10))
+    db_count = int(data.get('db_count', 3))
+    config = {"java_count": java_count, "db_count": db_count}
+    save_random_config(config)
+    return jsonify(success=True, config=config)
 
 if __name__ == '__main__':
     # 개발 서버 실행

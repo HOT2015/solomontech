@@ -1,0 +1,76 @@
+/* Material Design 3 스타일 커스텀 */
+body {
+  font-family: 'Roboto', 'Noto Sans KR', Arial, sans-serif;
+  background: #f5f6fa;
+  color: #222;
+}
+
+.btn, .btn-primary, .btn-success, .btn-danger, .btn-secondary {
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(60,60,60,0.04);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.btn-primary {
+  background: #6750a4;
+  border: none;
+}
+.btn-primary:hover {
+  background: #7f67be;
+}
+.btn-success {
+  background: #00c853;
+  border: none;
+}
+.btn-success:hover {
+  background: #00e676;
+}
+.btn-danger {
+  background: #b3261e;
+  border: none;
+}
+.btn-danger:hover {
+  background: #d32f2f;
+}
+.card, .modal-content {
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(60,60,60,0.08);
+  border: none;
+}
+.table {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.table th {
+  background: #ede7f6;
+  color: #4f378b;
+  font-weight: 600;
+}
+input.form-control, select.form-select, textarea.form-control {
+  border-radius: 8px;
+  border: 1.5px solid #c7bfff;
+  background: #faf8fd;
+  transition: border 0.2s;
+}
+input.form-control:focus, select.form-select:focus, textarea.form-control:focus {
+  border-color: #6750a4;
+  background: #fff;
+  box-shadow: 0 0 0 2px #eaddff;
+}
+.navbar, .nav-tabs {
+  background: #fff;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 8px rgba(60,60,60,0.06);
+}
+.page-id {
+  color: #7f67be;
+  font-weight: 500;
+}
+label.form-label {
+  color: #4f378b;
+  font-weight: 500;
+}
+hr {
+  border-top: 1.5px solid #eaddff;
+} 

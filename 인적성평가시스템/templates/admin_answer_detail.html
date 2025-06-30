@@ -25,7 +25,7 @@
                 <div class="col-md-6">
                     <h5 class="card-title"><i class="fas fa-chart-bar"></i> 평가 결과</h5>
                     <p class="mb-0">
-                        <strong>평가일시:</strong> {{ result.test_date[:19] if result.test_date else '' }}<br>
+                        <strong>평가일시:</strong> {{ result.test_date.replace('T', ' ')[:19] if result.test_date else '' }}<br>
                         <strong>기술 점수:</strong> <span class="badge bg-primary">{{ result.scores.technical }}점</span><br>
                         <strong>문제해결력:</strong> <span class="badge bg-warning text-dark">{{ result.scores.problem_solving }}점</span><br>
                         <strong>총점:</strong> <span class="badge bg-success">{{ result.total_score }}점</span>
@@ -47,7 +47,6 @@
                     {% set _ = technical_answers.append(item) %}
                 {% endif %}
             {% endfor %}
-            
             {% if technical_answers %}
                 {% for item in technical_answers %}
                 <div class="question-card mb-4 p-3 border rounded" id="question_{{ item.question.id }}">
@@ -62,11 +61,18 @@
                             <span class="badge bg-warning">{{ item.question.points }}점</span>
                         </div>
                     </div>
-                    
                     {% if item.question.type == "객관식" %}
-                    <div class="options-container">
+                    <!-- 객관식 답안 및 보기 전체 표시 -->
+                    <div class="mb-2">
+                        <strong>선택 답안:</strong> {{ item.answer }}
+                    </div>
+                    <div class="mb-2">
+                        <strong>모든 보기:</strong>
+                        <!-- 보기들을 1,2,3,4 순서대로 세로로 나열 -->
                         {% for option in item.question.options %}
-                        <div class="option-item p-2 border rounded mb-2 {% if option == item.answer %}selected-answer{% endif %} {% if option == item.question.correct_answer %}correct-answer{% endif %} {% if not item.answered %}unanswered{% endif %}">
+                        <div class="option-item p-2 border rounded mb-2
+                            {% if option == item.answer %} selected-answer{% endif %}
+                            {% if option == item.question.correct_answer %} correct-answer{% endif %}">
                             <strong>{{ loop.index }}.</strong> {{ option }}
                             {% if option == item.answer %}
                                 <span class="badge bg-primary ms-2">지원자 답변</span>
@@ -76,115 +82,17 @@
                             {% endif %}
                         </div>
                         {% endfor %}
-                        {% if not item.answered %}
-                        <div class="mt-2">
-                            <span class="badge bg-secondary fs-6"><i class="fas fa-minus"></i> 미답변</span>
-                        </div>
-                        {% endif %}
                     </div>
                     {% else %}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">지원자 답변:</label>
-                        {% if item.answered %}
-                        <div class="p-3 bg-light border rounded">
-                            <pre class="mb-0">{{ item.answer or '(답변 없음)' }}</pre>
-                        </div>
-                        {% else %}
-                        <div class="p-3 bg-light border rounded unanswered">
-                            <pre class="mb-0 text-muted">(미답변)</pre>
-                        </div>
-                        {% endif %}
-                        <div class="mt-2">
-                            <label class="form-label fw-bold">정답:</label>
-                            <div class="p-2 bg-success bg-opacity-10 border border-success rounded">
-                                <pre class="mb-0">{{ item.question.correct_answer }}</pre>
-                            </div>
-                            {% if item.question.keywords %}
-                            <small class="text-muted">
-                                <i class="fas fa-key"></i> 키워드: {{ item.question.keywords|join(', ') }}
-                            </small>
-                            {% endif %}
-                        </div>
+                    <!-- 주관식 답안 표시 -->
+                    <div class="mb-2">
+                        <strong>작성 답안:</strong> {{ item.answer }}
                     </div>
                     {% endif %}
-                    
-                    <div class="mt-3">
-                        {% if not item.answered %}
-                            <span class="badge bg-secondary fs-6"><i class="fas fa-minus"></i> 미답변</span>
-                        {% elif item.is_correct %}
-                            <span class="badge bg-success fs-6"><i class="fas fa-check"></i> 정답</span>
-                        {% else %}
-                            <span class="badge bg-danger fs-6"><i class="fas fa-times"></i> 오답</span>
-                        {% endif %}
-                    </div>
                 </div>
                 {% endfor %}
             {% else %}
                 <p class="text-muted">기술 평가 답안이 없습니다.</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- 문제해결력 평가 섹션 -->
-    <div class="card mb-4">
-        <div class="card-header bg-warning text-dark">
-            <h4 class="mb-0"><i class="fas fa-lightbulb"></i> 문제해결력 평가 답안</h4>
-        </div>
-        <div class="card-body">
-            {% set problem_solving_answers = [] %}
-            {% for item in answers %}
-                {% if item.question.category == '문제해결' %}
-                    {% set _ = problem_solving_answers.append(item) %}
-                {% endif %}
-            {% endfor %}
-            
-            {% if problem_solving_answers %}
-                {% for item in problem_solving_answers %}
-                <div class="question-card mb-4 p-3 border rounded" id="question_{{ item.question.id }}">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5 class="mb-0">
-                            <span class="badge bg-warning me-2">{{ loop.index }}</span>
-                            {{ item.question.question }}
-                        </h5>
-                        <div>
-                            <span class="badge bg-secondary me-1">{{ item.question.category }}</span>
-                            <span class="badge bg-info me-1">{{ item.question.difficulty }}</span>
-                            <span class="badge bg-warning">{{ item.question.points }}점</span>
-                        </div>
-                    </div>
-                    
-                    <div class="options-container">
-                        {% for option in item.question.options %}
-                        <div class="option-item p-2 border rounded mb-2 {% if option == item.answer %}selected-answer{% endif %} {% if option == item.question.correct_answer %}correct-answer{% endif %} {% if not item.answered %}unanswered{% endif %}">
-                            <strong>{{ loop.index }}.</strong> {{ option }}
-                            {% if option == item.answer %}
-                                <span class="badge bg-primary ms-2">지원자 답변</span>
-                            {% endif %}
-                            {% if option == item.question.correct_answer %}
-                                <span class="badge bg-success ms-2">정답</span>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                        {% if not item.answered %}
-                        <div class="mt-2">
-                            <span class="badge bg-secondary fs-6"><i class="fas fa-minus"></i> 미답변</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mt-3">
-                        {% if not item.answered %}
-                            <span class="badge bg-secondary fs-6"><i class="fas fa-minus"></i> 미답변</span>
-                        {% elif item.is_correct %}
-                            <span class="badge bg-success fs-6"><i class="fas fa-check"></i> 정답</span>
-                        {% else %}
-                            <span class="badge bg-danger fs-6"><i class="fas fa-times"></i> 오답</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p class="text-muted">문제해결력 평가 답안이 없습니다.</p>
             {% endif %}
         </div>
     </div>

@@ -25,21 +25,28 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">카테고리</label>
-                                    <select name="category" class="form-select" required>
-                                        <option value="Java" {% if question.category == "Java" %}selected{% endif %}>Java</option>
-                                        <option value="Database" {% if question.category == "Database" %}selected{% endif %}>Database</option>
-                                        <option value="문제해결" {% if question.category == "문제해결" %}selected{% endif %}>문제해결</option>
+                                    <label class="form-label">부서</label>
+                                    <select name="department_id" class="form-select" required>
+                                        <option value="">부서 선택</option>
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.id }}" {% if question.department_id == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">문제 유형</label>
-                                    <select name="type" class="form-select" required>
-                                        <option value="객관식" {% if question.type == "객관식" %}selected{% endif %}>객관식</option>
-                                        <option value="주관식" {% if question.type == "주관식" %}selected{% endif %}>주관식</option>
-                                    </select>
+                                    <label class="form-label">카테고리</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="category" id="editCategoryJava" value="Java" {% if question.category == "Java" %}checked{% endif %} required>
+                                            <label class="form-check-label" for="editCategoryJava">Java</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="category" id="editCategoryDatabase" value="Database" {% if question.category == "Database" %}checked{% endif %}>
+                                            <label class="form-check-label" for="editCategoryDatabase">Database</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -47,13 +54,37 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">난이도</label>
-                                    <select name="difficulty" class="form-select" required>
-                                        <option value="초급" {% if question.difficulty == "초급" %}selected{% endif %}>초급</option>
-                                        <option value="중급" {% if question.difficulty == "중급" %}selected{% endif %}>중급</option>
-                                    </select>
+                                    <label class="form-label">문제 유형</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="type" id="editTypeObjective" value="객관식" {% if question.type == "객관식" %}checked{% endif %} required>
+                                            <label class="form-check-label" for="editTypeObjective">객관식</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="type" id="editTypeSubjective" value="주관식" {% if question.type == "주관식" %}checked{% endif %}>
+                                            <label class="form-check-label" for="editTypeSubjective">주관식</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">난이도</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="difficulty" id="editDiffEasy" value="초급" {% if question.difficulty == "초급" %}checked{% endif %} required>
+                                            <label class="form-check-label" for="editDiffEasy">초급</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="difficulty" id="editDiffMedium" value="중급" {% if question.difficulty == "중급" %}checked{% endif %}>
+                                            <label class="form-check-label" for="editDiffMedium">중급</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">배점</label>
@@ -62,9 +93,13 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label class="form-label">문제 내용</label>
-                            <textarea name="question" class="form-control" rows="3" required>{{ question.question }}</textarea>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">문제 내용</label>
+                                    <textarea name="question" class="form-control" rows="3" required>{{ question.question }}</textarea>
+                                </div>
+                            </div>
                         </div>
                         
                         {% if question.type == "객관식" %}
@@ -79,8 +114,9 @@
                                 {% endfor %}
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">정답</label>
-                                <input type="text" name="correct_answer" class="form-control" value="{{ question.correct_answer }}" placeholder="정답을 입력하세요">
+                                <label class="form-label">정답 번호</label>
+                                <input type="number" name="correct_answer_number" class="form-control" min="1" max="{{ question.options|length }}" value="{{ question.options.index(question.correct_answer) + 1 if question.correct_answer in question.options else '' }}" placeholder="정답 번호(예: 1, 2, 3, 4)">
+                                <div class="form-text">정답은 보기의 번호(1~{{ question.options|length }})로 입력하세요.</div>
                             </div>
                         </div>
                         {% endif %}
@@ -116,56 +152,78 @@
 
 {% block scripts %}
 <script>
-// 문제 유형에 따른 폼 표시/숨김
-document.querySelector('select[name="type"]').addEventListener('change', function() {
+document.addEventListener('DOMContentLoaded', function() {
+    // 문제 유형에 따른 폼 표시/숨김
+    const typeRadios = document.querySelectorAll('input[name="type"]');
     const optionsSection = document.getElementById('optionsSection');
     const keywordsSection = document.getElementById('keywordsSection');
-    
-    if (this.value === '객관식') {
-        if (optionsSection) optionsSection.style.display = 'block';
-        if (keywordsSection) keywordsSection.style.display = 'none';
-    } else if (this.value === '주관식') {
-        if (optionsSection) optionsSection.style.display = 'none';
-        if (keywordsSection) keywordsSection.style.display = 'block';
-    }
-});
 
-// 문제 수정 폼 제출
-document.getElementById('editQuestionForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
-    
-    // 객관식인 경우 선택지 배열 처리
-    if (data.type === '객관식') {
-        data.options = Array.from(formData.getAll('options[]')).filter(option => option.trim() !== '');
-    }
-    
-    // 주관식인 경우 키워드 배열 처리
-    if (data.type === '주관식') {
-        data.keywords = data.keywords.split(',').map(keyword => keyword.trim()).filter(keyword => keyword !== '');
-    }
-    
-    fetch(`/admin/questions/edit/${data.question_id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('문제가 성공적으로 수정되었습니다.');
-            window.location.href = '/admin/questions';
-        } else {
-            alert('문제 수정에 실패했습니다: ' + data.message);
+    function toggleSections() {
+        const selectedType = document.querySelector('input[name="type"]:checked').value;
+        if (selectedType === '객관식') {
+            if (optionsSection) optionsSection.style.display = 'block';
+            if (keywordsSection) keywordsSection.style.display = 'none';
+        } else if (selectedType === '주관식') {
+            if (optionsSection) optionsSection.style.display = 'none';
+            if (keywordsSection) keywordsSection.style.display = 'block';
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('문제 수정 중 오류가 발생했습니다.');
+    }
+
+    typeRadios.forEach(radio => radio.addEventListener('change', toggleSections));
+    
+    // 페이지 로드 시 초기 상태 설정
+    toggleSections();
+
+    // 문제 수정 폼 제출
+    document.getElementById('editQuestionForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        // 객관식인 경우 선택지 배열 처리 및 정답 번호 → 실제 값 변환
+        if (data.type === '객관식') {
+            data.options = Array.from(formData.getAll('options[]')).filter(option => option.trim() !== '');
+            // 정답 번호를 실제 보기 값으로 변환
+            const answerIdx = parseInt(formData.get('correct_answer_number'), 10) - 1;
+            if (answerIdx >= 0 && answerIdx < data.options.length) {
+                data.correct_answer = data.options[answerIdx];
+            } else {
+                // 정답이 비어있을 수 있으므로, 번호가 유효하지 않으면 빈 문자열로 설정
+                if (formData.get('correct_answer_number')){
+                    alert('정답 번호가 올바르지 않습니다.');
+                    return;
+                }
+                data.correct_answer = '';
+            }
+        }
+        
+        // 주관식인 경우 키워드 배열 처리
+        if (data.type === '주관식' && data.keywords) {
+            data.keywords = data.keywords.split(',').map(keyword => keyword.trim()).filter(keyword => keyword !== '');
+        } else if (data.type === '주관식') {
+            data.keywords = [];
+        }
+        
+        fetch(`/admin/questions/edit/${data.question_id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('문제가 성공적으로 수정되었습니다.');
+                window.location.href = '/admin/questions';
+            } else {
+                alert('문제 수정에 실패했습니다: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('문제 수정 중 오류가 발생했습니다.');
+        });
     });
 });
 </script>

@@ -1,18 +1,16 @@
 [
   {
-    "candidate_id": "959f9a1c-736d-4759-9baa-4824ec634a27",
-    "test_date": "2025-06-29T23:44:09.522799",
+    "candidate_id": "44fb912b-d005-4e21-90ea-b89305f7d8f1",
+    "test_date": "2025-06-30 23:50:15",
     "answers": {
-      "tech_17": "ee",
-      "tech_6": "eee",
-      "ps_6": "빠른 로딩 속도",
-      "ps_16": "키보드 네비게이션 지원"
+      "tech_8": "int arr[] = new int[5]",
+      "tech_9": "extends",
+      "db_mc_101": "B"
     },
     "scores": {
-      "technical": 0,
-      "problem_solving": 30
+      "technical": 0
     },
-    "total_score": 30,
+    "total_score": 0,
     "rank": 1
   }
 ]

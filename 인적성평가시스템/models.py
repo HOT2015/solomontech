@@ -2,20 +2,21 @@ import json
 import uuid
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
+import os
 
 class Candidate:
     """지원자 정보를 관리하는 클래스"""
     
-    def __init__(self, name: str, email: str = '', phone: str = '', created_at: str = None, test_deadline: str = None, access_date: str = None, test_duration: int = 10, selected_questions: List[str] = None):
+    def __init__(self, name: str, email: str = '', phone: str = '', created_at: str = None, access_date: str = None, test_duration: int = 10, selected_questions: List[str] = None, department_id: str = None):
         self.id = str(uuid.uuid4())  # 고유 ID 생성
         self.name = name
         self.email = email or ''
         self.phone = phone or ''
         self.created_at = created_at or datetime.now().isoformat()
-        self.test_deadline = test_deadline
         self.access_date = access_date  # YYYY-MM-DD
         self.test_duration = test_duration  # 분 단위, 기본 10분
         self.selected_questions = selected_questions or []  # 출제할 문제 ID 목록
+        self.department_id = department_id # 부서 ID 추가
     
     def to_dict(self) -> Dict:
         """지원자 정보를 딕셔너리로 변환"""
@@ -25,10 +26,10 @@ class Candidate:
             "email": self.email,
             "phone": self.phone,
             "created_at": self.created_at,
-            "test_deadline": self.test_deadline,
             "access_date": self.access_date,
             "test_duration": self.test_duration,
-            "selected_questions": self.selected_questions
+            "selected_questions": self.selected_questions,
+            "department_id": self.department_id
         }
     
     @classmethod
@@ -39,14 +40,29 @@ class Candidate:
             data.get("email", ""),
             data.get("phone", ""),
             data.get("created_at"),
-            data.get("test_deadline"),
             data.get("access_date"),
             data.get("test_duration", 10),
-            data.get("selected_questions", [])
+            data.get("selected_questions", []),
+            data.get("department_id")
         )
         # id 필드를 명시적으로 설정 (JSON에서 로드할 때 필요)
         candidate.id = data["id"]
         return candidate
+
+class Department:
+    """부서 정보를 관리하는 클래스"""
+    def __init__(self, name: str):
+        self.id = "dept_" + str(uuid.uuid4())
+        self.name = name
+
+    def to_dict(self) -> Dict:
+        return {"id": self.id, "name": self.name}
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'Department':
+        dept = cls(data["name"])
+        dept.id = data["id"]
+        return dept
 
 class Question:
     """문제 정보를 관리하는 클래스"""
@@ -61,6 +77,7 @@ class Question:
         self.correct_answer = question_data["correct_answer"]
         self.keywords = question_data.get("keywords", [])
         self.points = question_data["points"]
+        self.department_id = question_data.get("department_id") # 부서 ID 추가
     
     def is_correct(self, answer: str) -> bool:
         """답안이 정답인지 확인"""
@@ -74,16 +91,34 @@ class Question:
             return matched_keywords >= len(correct_keywords) * 0.6  # 60% 이상 매칭 시 정답
         return False
 
+    def to_dict(self) -> Dict:
+        """문제 정보를 딕셔너리로 변환"""
+        data = {
+            "id": self.id,
+            "category": self.category,
+            "type": self.type,
+            "difficulty": self.difficulty,
+            "question": self.question,
+            "points": self.points,
+            "department_id": self.department_id,
+        }
+        if self.type == "객관식":
+            data["options"] = self.options
+            data["correct_answer"] = self.correct_answer
+        elif self.type == "주관식":
+            data["keywords"] = self.keywords
+            data["correct_answer"] = self.correct_answer
+        return data
+
 class TestResult:
     """평가 결과를 관리하는 클래스"""
     
     def __init__(self, candidate_id: str):
         self.candidate_id = candidate_id
-        self.test_date = datetime.now().isoformat()
+        self.test_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.answers = {}  # 문제ID: 답안
         self.scores = {
-            "technical": 0,
-            "problem_solving": 0
+            "technical": 0
         }
         self.total_score = 0
         self.rank = 0
@@ -95,7 +130,6 @@ class TestResult:
     def calculate_score(self, questions: List[Question]):
         """점수 계산"""
         technical_score = 0
-        problem_solving_score = 0
         
         for question in questions:
             if question.id in self.answers:
@@ -103,12 +137,9 @@ class TestResult:
                 if question.is_correct(answer):
                     if question.category in ["Java", "Database"]:
                         technical_score += question.points
-                    elif question.category == "문제해결":
-                        problem_solving_score += question.points
         
         self.scores["technical"] = technical_score
-        self.scores["problem_solving"] = problem_solving_score
-        self.total_score = technical_score + problem_solving_score
+        self.total_score = technical_score
     
     def to_dict(self) -> Dict:
         """결과를 딕셔너리로 변환"""
@@ -136,36 +167,42 @@ class DataManager:
     """데이터 관리를 담당하는 클래스"""
     
     def __init__(self):
-        self.candidates_file = "data/candidates.json"
-        self.results_file = "data/results.json"
-        self.questions_file = "data/questions.json"
+        self.data_folder = "data"
+        self.candidates_file = os.path.join(self.data_folder, "candidates.json")
+        self.results_file = os.path.join(self.data_folder, "results.json")
+        self.questions_file = os.path.join(self.data_folder, "questions.json")
+        self.departments_file = os.path.join(self.data_folder, "departments.json")
         self._ensure_data_files()
     
     def _ensure_data_files(self):
         """데이터 파일들이 존재하는지 확인하고 없으면 생성"""
-        import os
-        
-        # data 디렉토리 생성
-        os.makedirs("data", exist_ok=True)
-        
-        # 후보자 파일 초기화
+        os.makedirs(self.data_folder, exist_ok=True)
         if not os.path.exists(self.candidates_file):
             self._save_json(self.candidates_file, [])
-        
-        # 결과 파일 초기화
+        if not os.path.exists(self.questions_file):
+            self._save_json(self.questions_file, {"technical_questions": []})
         if not os.path.exists(self.results_file):
             self._save_json(self.results_file, [])
+        if not os.path.exists(self.departments_file):
+            self._save_json(self.departments_file, {"departments": []})
     
-    def _load_json(self, filename: str) -> List[Dict]:
+    def _load_json(self, filename: str):
         """JSON 파일 로드"""
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError:
+            if filename == self.departments_file:
+                return {"departments": []}
+            if filename == self.questions_file:
+                return {"technical_questions": []}
             return []
     
-    def _save_json(self, filename: str, data: List[Dict]):
+    def _save_json(self, filename: str, data):
         """JSON 파일 저장"""
+        dir_name = os.path.dirname(filename)
+        if dir_name and not os.path.exists(dir_name):
+            os.makedirs(dir_name)
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     
@@ -203,24 +240,22 @@ class DataManager:
         return None
     
     def get_all_results(self) -> List[TestResult]:
-        """모든 평가 결과 조회"""
+        """모든 결과 정보 조회"""
         results = self._load_json(self.results_file)
         return [TestResult.from_dict(data) for data in results]
     
     def load_questions(self) -> List[Question]:
         """문제 데이터 로드"""
-        questions_data = self._load_json(self.questions_file)
-        questions = []
-        
-        # 기술 문제 로드
-        for tech_q in questions_data.get("technical_questions", []):
-            questions.append(Question(tech_q))
-        
-        # 문제해결력 문제 로드
-        for ps_q in questions_data.get("problem_solving_questions", []):
-            questions.append(Question(ps_q))
-        
-        return questions
+        try:
+            with open(self.questions_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            # 기술 문제만 로드
+            all_questions_data = data.get("technical_questions", [])
+            
+            return [Question(q) for q in all_questions_data]
+        except (FileNotFoundError, json.JSONDecodeError):
+            return []
     
     def calculate_ranks(self):
         """순위 계산 및 업데이트"""
@@ -249,25 +284,16 @@ class DataManager:
         results = [r for r in results if r["candidate_id"] != candidate_id]
         self._save_json(self.results_file, results)
     
-    def set_candidate_deadline(self, candidate_id: str, deadline: str):
-        """지원자 평가완료시간 설정"""
+    def update_candidate(self, updated_candidate: Candidate):
+        """지원자 정보 수정 (수정된 Candidate 객체를 통째로 받아 처리)"""
         candidates = self._load_json(self.candidates_file)
-        for candidate in candidates:
-            if candidate["id"] == candidate_id:
-                candidate["test_deadline"] = deadline
+        # 해당 id를 가진 지원자 데이터를 찾아 교체
+        for i, candidate in enumerate(candidates):
+            if candidate["id"] == updated_candidate.id:
+                candidates[i] = updated_candidate.to_dict()
                 break
         self._save_json(self.candidates_file, candidates)
-    
-    def update_candidate(self, candidate_id: str, name: str, access_date: str, test_duration: int):
-        """지원자 정보 수정"""
-        candidates = self._load_json(self.candidates_file)
-        for candidate in candidates:
-            if candidate["id"] == candidate_id:
-                candidate["name"] = name
-                candidate["access_date"] = access_date
-                candidate["test_duration"] = test_duration
-                break
-        self._save_json(self.candidates_file, candidates)
+        return updated_candidate
     
     def update_candidate_contact_info(self, candidate_id: str, email: str, phone: str):
         """지원자 연락처 정보 업데이트 (이메일, 핸드폰번호)"""
@@ -279,28 +305,8 @@ class DataManager:
                 break
         self._save_json(self.candidates_file, candidates)
     
-    def is_test_deadline_passed(self, candidate_id: str) -> bool:
-        """평가완료시간이 지났는지 확인 (일자만 비교)"""
-        candidate = self.get_candidate(candidate_id)
-        if not candidate:
-            return True  # 지원자를 찾을 수 없으면 True 반환 (접근 차단)
-        
-        # test_deadline이 설정되지 않은 경우 False 반환 (평가 가능)
-        if not candidate.test_deadline:
-            return False
-        
-        try:
-            # 마감 날짜(YYYY-MM-DD)만 추출
-            deadline_date = candidate.test_deadline[:10]
-            current_date = datetime.now().strftime('%Y-%m-%d')
-            # 현재 날짜가 마감 날짜를 초과했는지 확인
-            return current_date > deadline_date
-        except (ValueError, TypeError):
-            # 날짜 형식이 잘못된 경우 False 반환 (평가 가능)
-            return False
-    
     def get_candidate_questions(self, candidate_id: str) -> List[Question]:
-        """지원자에게 출제할 문제 목록 조회"""
+        """지원자에게 할당된 문제 목록을 반환"""
         candidate = self.get_candidate(candidate_id)
         if not candidate:
             return []
@@ -328,24 +334,48 @@ class DataManager:
         self._save_json(self.candidates_file, candidates)
     
     def get_random_questions(self, count: int = 10, category: str = None) -> List[str]:
-        """랜덤 문제 ID 목록 생성"""
+        """지정된 카테고리 또는 전체에서 랜덤으로 문제 ID 목록 반환"""
+        import random
+        
         all_questions = self.load_questions()
         
-        # 카테고리 필터링
         if category:
             filtered_questions = [q for q in all_questions if q.category == category]
         else:
             filtered_questions = all_questions
-        
-        # 랜덤 선택
-        import random
-        if len(filtered_questions) <= count:
-            return [q.id for q in filtered_questions]
-        else:
-            selected = random.sample(filtered_questions, count)
-            return [q.id for q in selected]
+            
+        if len(filtered_questions) < count:
+            count = len(filtered_questions)
+            
+        return [q.id for q in random.sample(filtered_questions, count)]
     
     def get_questions_by_category(self, category: str) -> List[Question]:
-        """카테고리별 문제 목록 조회"""
+        """카테고리별 문제 조회"""
         all_questions = self.load_questions()
-        return [q for q in all_questions if q.category == category] 
+        return [q for q in all_questions if q.category == category]
+
+    # 부서 관리 메서드
+    def load_departments(self) -> List[Department]:
+        data = self._load_json(self.departments_file)
+        return [Department.from_dict(d) for d in data.get("departments", [])]
+
+    def save_department(self, department: Department):
+        data = self._load_json(self.departments_file)
+        data["departments"].append(department.to_dict())
+        self._save_json(self.departments_file, data)
+
+    def delete_department(self, department_id: str):
+        data = self._load_json(self.departments_file)
+        data["departments"] = [d for d in data["departments"] if d["id"] != department_id]
+        self._save_json(self.departments_file, data)
+        # 연관된 문제들의 department_id를 null로 업데이트
+        questions = self.load_questions()
+        for q in questions:
+            if q.department_id == department_id:
+                q.department_id = None
+        self.save_all_questions(questions)
+
+    def save_all_questions(self, questions: List[Question]):
+        """모든 문제 정보를 파일에 저장"""
+        question_data = {"technical_questions": [q.to_dict() for q in questions]}
+        self._save_json(self.questions_file, question_data) 

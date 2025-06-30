@@ -77,9 +77,9 @@
 {% endblock %}
 
 {% block content %}
-<!-- 지원자 추가 모달: 최상단에 고유ID 표시 -->
+<!-- 지원자 추가 모달 -->
 <div class="modal fade" id="addCandidateModal" tabindex="-1">
-  <div class="modal-dialog modal-xl">
+  <div class="modal-dialog" style="max-width:540px;">
     <div class="modal-content">
       <div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
         팝업ID: POPUP-ADD-CANDIDATE (admin.html)
@@ -90,159 +90,28 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">이름</label>
-                <input type="text" name="name" class="form-control" required>
-                <div class="form-text">지원자는 이름만 일치해야 입장 가능</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">접속 가능 날짜 (YYYY-MM-DD)</label>
-                <input type="date" name="access_date" class="form-control" required>
-                <div class="form-text">해당 날짜에만 시험 응시 가능</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">문제풀이 시간(분)</label>
-                <input type="number" name="test_duration" class="form-control" min="1" value="10">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">출제 문제 설정</label>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="question_selection" id="allQuestions" value="all" checked>
-                  <label class="form-check-label" for="allQuestions">
-                    전체 문제 출제
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="question_selection" id="randomQuestions" value="random">
-                  <label class="form-check-label" for="randomQuestions">
-                    랜덤 선택
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="question_selection" id="customQuestions" value="custom">
-                  <label class="form-check-label" for="customQuestions">
-                    직접 선택
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="question_selection" id="noQuestions" value="none">
-                  <label class="form-check-label" for="noQuestions">
-                    문제 선택 안함
-                  </label>
-                </div>
-              </div>
-              
-              <!-- 랜덤 선택 옵션 -->
-              <div id="randomOptions" style="display:none;">
-                <div class="mb-3">
-                  <label class="form-label">카테고리별 랜덤 선택</label>
-                  <div class="row">
-                    <div class="col-6">
-                      <label class="form-label">Java 문제</label>
-                      <input type="number" name="random_java" class="form-control" min="0" max="10" value="3">
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label">Database 문제</label>
-                      <input type="number" name="random_database" class="form-control" min="0" max="10" value="2">
-                    </div>
-                  </div>
-                  <div class="row mt-2">
-                    <div class="col-6">
-                      <label class="form-label">문제해결 문제</label>
-                      <input type="number" name="random_problem_solving" class="form-control" min="0" max="20" value="3">
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label">총 문제 수</label>
-                      <input type="text" id="totalRandomCount" class="form-control" readonly>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- 직접 선택 옵션 -->
-              <div id="customOptions" style="display:none;">
-                <div class="mb-3">
-                  <label class="form-label">카테고리별 문제 선택</label>
-                  <div class="accordion" id="questionAccordion">
-                    <!-- Java 문제 -->
-                    <div class="accordion-item">
-                      <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#javaQuestions">
-                          Java 문제 (<span id="javaCount">0</span>개 선택)
-                        </button>
-                      </h2>
-                      <div id="javaQuestions" class="accordion-collapse collapse show" data-bs-parent="#questionAccordion">
-                        <div class="accordion-body">
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllJava">
-                            <label class="form-check-label" for="selectAllJava">
-                              <strong>전체 선택</strong>
-                            </label>
-                          </div>
-                          <hr>
-                          <div id="javaQuestionList" class="question-list">
-                            <!-- Java 문제 목록이 여기에 동적으로 로드됩니다 -->
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Database 문제 -->
-                    <div class="accordion-item">
-                      <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#databaseQuestions">
-                          Database 문제 (<span id="databaseCount">0</span>개 선택)
-                        </button>
-                      </h2>
-                      <div id="databaseQuestions" class="accordion-collapse collapse" data-bs-parent="#questionAccordion">
-                        <div class="accordion-body">
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllDatabase">
-                            <label class="form-check-label" for="selectAllDatabase">
-                              <strong>전체 선택</strong>
-                            </label>
-                          </div>
-                          <hr>
-                          <div id="databaseQuestionList" class="question-list">
-                            <!-- Database 문제 목록이 여기에 동적으로 로드됩니다 -->
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- 문제해결 문제 -->
-                    <div class="accordion-item">
-                      <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#problemSolvingQuestions">
-                          문제해결 문제 (<span id="problemSolvingCount">0</span>개 선택)
-                        </button>
-                      </h2>
-                      <div id="problemSolvingQuestions" class="accordion-collapse collapse" data-bs-parent="#questionAccordion">
-                        <div class="accordion-body">
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllProblemSolving">
-                            <label class="form-check-label" for="selectAllProblemSolving">
-                              <strong>전체 선택</strong>
-                            </label>
-                          </div>
-                          <hr>
-                          <div id="problemSolvingQuestionList" class="question-list">
-                            <!-- 문제해결 문제 목록이 여기에 동적으로 로드됩니다 -->
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="mt-3">
-                    <strong>총 선택된 문제: <span id="totalSelectedCount">0</span>개</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">부서</label>
+            <select name="department_id" class="form-select" required>
+              <option value="">부서 선택</option>
+              {% for dept in departments %}
+              <option value="{{ dept.id }}">{{ dept.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">이름</label>
+            <input type="text" name="name" class="form-control" required>
+            <div class="form-text">지원자는 이름만 일치해야 입장 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">접속 가능 날짜 (YYYY-MM-DD)</label>
+            <input type="date" name="access_date" class="form-control" required>
+            <div class="form-text">해당 날짜에만 시험 응시 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">문제풀이 시간(분)</label>
+            <input type="number" name="test_duration" class="form-control" min="1" value="10">
           </div>
         </div>
         <div class="modal-footer">
@@ -254,9 +123,9 @@
   </div>
 </div>
 
-<!-- 지원자 수정 모달: 최상단에 고유ID 표시 -->
+<!-- 지원자 수정 모달 -->
 <div class="modal fade" id="editCandidateModal" tabindex="-1">
-  <div class="modal-dialog modal-xl">
+  <div class="modal-dialog" style="max-width:540px;">
     <div class="modal-content">
       <div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
         팝업ID: POPUP-EDIT-CANDIDATE (admin.html)
@@ -268,159 +137,28 @@
         </div>
         <div class="modal-body">
           <input type="hidden" id="editCandidateId" name="candidate_id">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">이름</label>
-                <input type="text" id="editCandidateName" name="name" class="form-control" required>
-                <div class="form-text">지원자는 이름만 일치해야 입장 가능</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">접속 가능 날짜 (YYYY-MM-DD)</label>
-                <input type="date" id="editCandidateAccessDate" name="access_date" class="form-control" required>
-                <div class="form-text">해당 날짜에만 시험 응시 가능</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">문제풀이 시간(분)</label>
-                <input type="number" id="editCandidateTestDuration" name="test_duration" class="form-control" min="1" value="10">
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">출제 문제 재설정</label>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="edit_question_selection" id="editAllQuestions" value="all" checked>
-                  <label class="form-check-label" for="editAllQuestions">
-                    전체 문제 출제
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="edit_question_selection" id="editRandomQuestions" value="random">
-                  <label class="form-check-label" for="editRandomQuestions">
-                    랜덤 선택
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="edit_question_selection" id="editCustomQuestions" value="custom">
-                  <label class="form-check-label" for="editCustomQuestions">
-                    직접 선택
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="edit_question_selection" id="editNoQuestions" value="none">
-                  <label class="form-check-label" for="editNoQuestions">
-                    문제 선택 안함
-                  </label>
-                </div>
-              </div>
-              
-              <!-- 수정용 랜덤 선택 옵션 -->
-              <div id="editRandomOptions" style="display:none;">
-                <div class="mb-3">
-                  <label class="form-label">카테고리별 랜덤 선택</label>
-                  <div class="row">
-                    <div class="col-6">
-                      <label class="form-label">Java 문제</label>
-                      <input type="number" name="edit_random_java" class="form-control" min="0" max="10" value="3">
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label">Database 문제</label>
-                      <input type="number" name="edit_random_database" class="form-control" min="0" max="10" value="2">
-                    </div>
-                  </div>
-                  <div class="row mt-2">
-                    <div class="col-6">
-                      <label class="form-label">문제해결 문제</label>
-                      <input type="number" name="edit_random_problem_solving" class="form-control" min="0" max="20" value="3">
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label">총 문제 수</label>
-                      <input type="text" id="editTotalRandomCount" class="form-control" readonly>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- 수정용 직접 선택 옵션 -->
-              <div id="editCustomOptions" style="display:none;">
-                <div class="mb-3">
-                  <label class="form-label">카테고리별 문제 선택</label>
-                  <div class="accordion" id="editQuestionAccordion">
-                    <!-- Java 문제 -->
-                    <div class="accordion-item">
-                      <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#editJavaQuestions">
-                          Java 문제 (<span id="editJavaCount">0</span>개 선택)
-                        </button>
-                      </h2>
-                      <div id="editJavaQuestions" class="accordion-collapse collapse show" data-bs-parent="#editQuestionAccordion">
-                        <div class="accordion-body">
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="editSelectAllJava">
-                            <label class="form-check-label" for="editSelectAllJava">
-                              <strong>전체 선택</strong>
-                            </label>
-                          </div>
-                          <hr>
-                          <div id="editJavaQuestionList" class="question-list">
-                            <!-- Java 문제 목록이 여기에 동적으로 로드됩니다 -->
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Database 문제 -->
-                    <div class="accordion-item">
-                      <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#editDatabaseQuestions">
-                          Database 문제 (<span id="editDatabaseCount">0</span>개 선택)
-                        </button>
-                      </h2>
-                      <div id="editDatabaseQuestions" class="accordion-collapse collapse" data-bs-parent="#editQuestionAccordion">
-                        <div class="accordion-body">
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="editSelectAllDatabase">
-                            <label class="form-check-label" for="editSelectAllDatabase">
-                              <strong>전체 선택</strong>
-                            </label>
-                          </div>
-                          <hr>
-                          <div id="editDatabaseQuestionList" class="question-list">
-                            <!-- Database 문제 목록이 여기에 동적으로 로드됩니다 -->
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- 문제해결 문제 -->
-                    <div class="accordion-item">
-                      <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#editProblemSolvingQuestions">
-                          문제해결 문제 (<span id="editProblemSolvingCount">0</span>개 선택)
-                        </button>
-                      </h2>
-                      <div id="editProblemSolvingQuestions" class="accordion-collapse collapse" data-bs-parent="#editQuestionAccordion">
-                        <div class="accordion-body">
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="editSelectAllProblemSolving">
-                            <label class="form-check-label" for="editSelectAllProblemSolving">
-                              <strong>전체 선택</strong>
-                            </label>
-                          </div>
-                          <hr>
-                          <div id="editProblemSolvingQuestionList" class="question-list">
-                            <!-- 문제해결 문제 목록이 여기에 동적으로 로드됩니다 -->
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="mt-3">
-                    <strong>총 선택된 문제: <span id="editTotalSelectedCount">0</span>개</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="mb-3">
+            <label class="form-label">부서</label>
+            <select id="editCandidateDepartment" name="department_id" class="form-select" required>
+              <option value="">부서 선택</option>
+              {% for dept in departments %}
+              <option value="{{ dept.id }}">{{ dept.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">이름</label>
+            <input type="text" id="editCandidateName" name="name" class="form-control" required>
+            <div class="form-text">지원자는 이름만 일치해야 입장 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">접속 가능 날짜 (YYYY-MM-DD)</label>
+            <input type="date" id="editCandidateAccessDate" name="access_date" class="form-control" required>
+            <div class="form-text">해당 날짜에만 시험 응시 가능</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">문제풀이 시간(분)</label>
+            <input type="number" id="editCandidateTestDuration" name="test_duration" class="form-control" min="1">
           </div>
         </div>
         <div class="modal-footer">
@@ -596,92 +334,57 @@
                                     <th>이름</th>
                                     <th>이메일</th>
                                     <th>핸드폰번호</th>
-                                    <th>등록일시</th>
-                                    <th>평가완료시간</th>
-                                    <th>기술 점수</th>
-                                    <th>문제해결력</th>
+                                    <th>부서</th>
+                                    <th>접속가능일</th>
+                                    <th>상태</th>
                                     <th>총점</th>
-                                    <th>평가 상태</th>
-                                    <th>평가일시</th>
                                     <th>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for candidate in candidates %}
-                                {% set result = candidate_results.get(candidate.id) %}
-                                <tr>
+                                {% for c in candidates %}
+                                <tr data-candidate-id="{{ c.id }}"
+                                    data-name="{{ c.name }}"
+                                    data-access-date="{{ c.access_date }}"
+                                    data-test-duration="{{ c.test_duration }}"
+                                    data-department-id="{{ c.department_id or '' }}">
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ c.name }}</td>
+                                    <td>{{ c.email or '미입력' }}</td>
+                                    <td>{{ c.phone or '미입력' }}</td>
                                     <td>
-                                        {% if result %}
-                                            <span class="badge bg-primary">{{ result.result.rank }}위</span>
+                                      {% set dept_name = '미지정' %}
+                                      {% for dept in departments %}
+                                        {% if dept.id == c.department_id %}
+                                          {% set dept_name = dept.name %}
+                                        {% endif %}
+                                      {% endfor %}
+                                      {{ dept_name }}
+                                    </td>
+                                    <td>{{ c.created_at_formatted }}</td>
+                                    <td>
+                                        {% if candidate_results[c.id] %}
+                                            <span class="badge bg-success">평가완료</span>
                                         {% else %}
-                                            <span class="text-muted">-</span>
+                                            <span class="badge bg-warning text-dark">미완료</span>
                                         {% endif %}
                                     </td>
+                                    <td>{{ candidate_results[c.id].total_score if candidate_results[c.id] else 'N/A' }}</td>
                                     <td>
-                                        <strong>{{ candidate.name }}</strong>
-                                    </td>
-                                    <td>{{ candidate.email }}</td>
-                                    <td>{{ candidate.phone }}</td>
-                                    <td>{{ candidate.created_at[:19] if candidate.created_at else '' }}</td>
-                                    <td>
-                                        <input type="datetime-local" class="form-control form-control-sm deadline-input" 
-                                               data-candidate-id="{{ candidate.id }}" 
-                                               value="{{ candidate.test_deadline[:16] if candidate.test_deadline else '' }}" 
-                                               style="width: 150px;">
-                                    </td>
-                                    <td>
-                                        {% if result %}
-                                            <span class="badge bg-primary">{{ result.result.scores.technical }}점</span>
-                                        {% else %}
-                                            <span class="text-muted">미평가</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if result %}
-                                            <span class="badge bg-warning text-dark">{{ result.result.scores.problem_solving }}점</span>
-                                        {% else %}
-                                            <span class="text-muted">미평가</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if result %}
-                                            <strong>{{ result.result.total_score }}점</strong>
-                                        {% else %}
-                                            <span class="text-muted">미평가</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if result %}
-                                            <span class="badge bg-success">완료</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">미완료</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if result %}
-                                            {{ result.result.test_date[:19] if result.result.test_date else '' }}
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary edit-candidate" 
-                                                data-candidate-id="{{ candidate.id }}" 
-                                                data-candidate-name="{{ candidate.name }}"
-                                                data-access-date="{{ candidate.access_date }}"
-                                                data-test-duration="{{ candidate.test_duration }}">
+                                        <button class="btn btn-sm btn-outline-primary edit-candidate-btn">
                                             <i class="fas fa-edit"></i> 수정
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger delete-candidate" 
-                                                data-candidate-id="{{ candidate.id }}" 
-                                                data-candidate-name="{{ candidate.name }}">
+                                        <button class="btn btn-sm btn-outline-danger delete-candidate-btn">
                                             <i class="fas fa-trash"></i> 삭제
                                         </button>
-                                        {% if result %}
-                                        <a href="{{ url_for('admin_answer_detail', candidate_id=candidate.id) }}" class="btn btn-sm btn-outline-info mt-1">
-                                            <i class="fas fa-file-alt"></i> 답안 상세
+                                        {% if candidate_results[c.id] %}
+                                        <a href="{{ url_for('admin_answer_detail', candidate_id=c.id) }}" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-file-alt"></i> 결과
                                         </a>
                                         {% endif %}
+                                        <button class="btn btn-sm btn-outline-primary candidate-manage-btn" data-id="{{ c.id }}" data-name="{{ c.name }}">
+                                            <i class="fas fa-cog"></i> 문제 세트 관리
+                                        </button>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -773,69 +476,164 @@
   <!-- 시스템 설정 탭 -->
   <div class="tab-pane fade" id="settings" role="tabpanel">
     <div class="row">
-      <div class="col-12">
+      <!-- 부서 관리 -->
+      <div class="col-md-6">
         <div class="card">
-          <div class="card-body">
-            <h3 class="card-title mb-4">
-              <i class="fas fa-cog"></i> 시스템 설정
-            </h3>
-            
-            <div class="row">
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title">
-                      <i class="fas fa-building"></i> 회사 정보 설정
-                    </h5>
-                    <p class="card-text">
-                      웹사이트에 표시될 회사명, 설명, 로고 이미지를 설정할 수 있습니다.
-                    </p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#companySettingsModal">
-                      <i class="fas fa-edit"></i> 회사 정보 수정
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title">
-                      <i class="fas fa-image"></i> 현재 로고 미리보기
-                    </h5>
-                    <div class="text-center">
-                      {% if config.get('COMPANY_LOGO') %}
-                        <img src="{{ url_for('static', filename='images/' + config.COMPANY_LOGO) }}" 
-                             alt="현재 로고" class="img-fluid" style="max-height: 100px;">
-                        <p class="mt-2 text-muted">{{ config.COMPANY_LOGO }}</p>
-                      {% else %}
-                        <i class="fas fa-image fa-3x text-muted"></i>
-                        <p class="mt-2 text-muted">로고가 설정되지 않았습니다</p>
-                      {% endif %}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="row mt-4">
-              <div class="col-12">
-                <div class="card">
-                  <div class="card-body">
-                    <h5 class="card-title">
-                      <i class="fas fa-info-circle"></i> 설정 안내
-                    </h5>
-                    <ul class="list-unstyled">
-                      <li><i class="fas fa-check text-success"></i> 로고 이미지는 PNG, JPG, JPEG, GIF, SVG 형식을 지원합니다.</li>
-                      <li><i class="fas fa-check text-success"></i> 권장 이미지 크기: 최대 200px × 80px</li>
-                      <li><i class="fas fa-check text-success"></i> 파일 크기는 2MB 이하로 제한됩니다.</li>
-                      <li><i class="fas fa-check text-success"></i> 로고를 설정하지 않으면 기본 아이콘이 표시됩니다.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="card-header">
+            <h5 class="mb-0">부서 관리</h5>
           </div>
+          <div class="card-body">
+            <form id="addDepartmentForm" class="mb-3">
+              <div class="input-group mb-2">
+                <input type="text" name="name" class="form-control" placeholder="새 부서명 입력" required>
+                <button class="btn btn-primary" type="submit">추가</button>
+              </div>
+            </form>
+            <!-- 등록된 부서 목록 테이블 -->
+            <table class="table table-bordered table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:60px;">#</th>
+                  <th>부서명</th>
+                  <th style="width:180px;">관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for dept in departments %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ dept.name }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary assign-questions-btn" data-id="{{ dept.id }}" data-name="{{ dept.name }}">문제할당</button>
+                    <button class="btn btn-sm btn-outline-danger delete-department-btn" data-id="{{ dept.id }}">삭제</button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="form-text text-danger mt-2">부서 삭제 시 해당 부서에 매핑된 문제들은 '미지정' 상태로 남습니다.</div>
+          </div>
+        </div>
+      </div>
+      <!-- 문제-지원자 매칭 링크 -->
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">문제-지원자 관리</h5>
+          </div>
+          <div class="card-body">
+            <p>지원자별로 시험 볼 문제를 직접 선택하고 할당합니다.</p>
+            <a href="{{ url_for('candidate_question_match') }}" class="btn btn-primary">
+              <i class="fas fa-link"></i> 매칭 페이지로 이동
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title"><i class="fas fa-random"></i> 랜덤 출제 개수 설정</h5>
+        <form id="randomConfigForm" class="row g-2 align-items-center">
+          <div class="col-auto">
+            <label for="javaCountInput" class="form-label mb-0">JAVA 객관식</label>
+            <input type="number" id="javaCountInput" class="form-control" min="1" value="10" style="width:80px;">
+          </div>
+          <div class="col-auto">
+            <label for="dbCountInput" class="form-label mb-0">DB 객관식</label>
+            <input type="number" id="dbCountInput" class="form-control" min="1" value="3" style="width:80px;">
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary">저장</button>
+          </div>
+          <div class="col-auto" id="randomConfigMsg"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 문제 할당 모달 -->
+<div class="modal fade" id="assignQuestionsModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><span id="assignDeptName"></span> - 문제 할당</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 필터 영역 -->
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <select id="filterDepartment" class="form-select form-select-sm">
+              <option value="">전체 부서</option>
+              <option value="unassigned">미지정</option>
+              {% for dept in departments %}
+              <option value="{{ dept.id }}">{{ dept.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <select id="filterType" class="form-select form-select-sm">
+              <option value="">전체 유형</option>
+              <option value="객관식">객관식</option>
+              <option value="주관식">주관식</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <select id="filterCategory" class="form-select form-select-sm">
+              <option value="">전체 카테고리</option>
+              <option value="Java">Java</option>
+              <option value="Database">Database</option>
+            </select>
+          </div>
+          <div class="col-md-5 text-end">
+            <button class="btn btn-outline-secondary btn-sm" id="selectAllQuestions">전체선택</button>
+            <button class="btn btn-outline-secondary btn-sm" id="deselectAllQuestions">전체해제</button>
+          </div>
+        </div>
+        <!-- 문제 목록 -->
+        <div class="question-list border rounded p-2" style="max-height:400px; overflow-y:auto; background:#f8f9fa;">
+          <form id="assignQuestionsForm">
+            <input type="hidden" name="department_id" id="assignDeptId">
+            <div id="assignQuestionsContainer">
+              <!-- JS로 문제 체크박스 렌더링 -->
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="saveAssignQuestionsBtn">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= -->
+<!-- 지원자별 문제 세트 관리 모달 -->
+<!-- ========================= -->
+<div class="modal fade" id="candidateQuestionsModal" tabindex="-1" aria-labelledby="candidateQuestionsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="candidateQuestionsModalLabel">지원자별 문제 세트 관리</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <strong>지원자:</strong> <span id="modalCandidateName"></span>
+        </div>
+        <div class="mb-3">
+          <button class="btn btn-outline-primary btn-sm" id="randomizeQuestionsBtn">문제 재랜덤</button>
+          <button class="btn btn-success btn-sm" id="saveCandidateQuestionsBtn">저장</button>
+        </div>
+        <div class="question-list border rounded p-2" style="max-height:400px; overflow-y:auto; background:#f8f9fa;">
+          <form id="candidateQuestionsForm">
+            <input type="hidden" name="candidate_id" id="modalCandidateId">
+            <div id="candidateQuestionsContainer">
+              <!-- JS로 문제 체크박스 렌더링 -->
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -854,225 +652,382 @@
 
 {% block scripts %}
 <script>
-let allQuestions = [];
-
-function fetchQuestionsAndRender(mode) {
-    fetch('/api/questions')
-    .then(response => response.json())
-    .then(questions => {
-        allQuestions = questions;
-        renderAllCategoryQuestions(mode);
-    })
-    .catch(error => {
-        allQuestions = [];
-        renderAllCategoryQuestions(mode);
-        alert('문제 목록을 불러오지 못했습니다. 새로고침 해주세요.');
-    });
-}
-
-function renderAllCategoryQuestions(mode) {
-    const prefix = mode === 'edit' ? 'edit' : '';
-    // Java 문제
-    const javaQuestions = allQuestions.filter(q => q.category === 'Java');
-    renderQuestionList(prefix + 'JavaQuestionList', javaQuestions, prefix + 'JavaCount', mode);
-    // Database 문제
-    const databaseQuestions = allQuestions.filter(q => q.category === 'Database');
-    renderQuestionList(prefix + 'DatabaseQuestionList', databaseQuestions, prefix + 'DatabaseCount', mode);
-    // 문제해결 문제
-    const problemSolvingQuestions = allQuestions.filter(q => q.category === '문제해결');
-    renderQuestionList(prefix + 'ProblemSolvingQuestionList', problemSolvingQuestions, prefix + 'ProblemSolvingCount', mode);
-    updateTotalSelectedCount(mode);
-}
-
-function renderQuestionList(containerId, questions, countId, mode) {
-    const container = document.getElementById(containerId);
-    const countElement = document.getElementById(countId);
-    if (!container) return;
-    container.innerHTML = '';
-    if (!questions || questions.length === 0) {
-        container.innerHTML = '<div class="text-danger">등록된 문제가 없습니다.</div>';
-        if (countElement) countElement.textContent = 0;
-        return;
-    }
-    questions.forEach(question => {
-        const questionDiv = document.createElement('div');
-        questionDiv.className = 'form-check mb-2';
-        questionDiv.innerHTML = `
-            <input class="form-check-input question-checkbox" type="checkbox" 
-                   value="${question.id}" id="${containerId.replace('QuestionList','q_')}${question.id}" 
-                   data-category="${question.category}">
-            <label class="form-check-label" for="${containerId.replace('QuestionList','q_')}${question.id}">
-                <small>${question.question.substring(0, 60)}${question.question.length > 60 ? '...' : ''}</small>
-                <span class="badge bg-secondary ms-1">${question.type}</span>
-                <span class="badge bg-info ms-1">${question.difficulty}</span>
-            </label>
-        `;
-        container.appendChild(questionDiv);
-        const checkbox = questionDiv.querySelector('.question-checkbox');
-        checkbox.addEventListener('change', () => {
-            updateCategoryCount(container, countElement);
-            updateTotalSelectedCount(mode);
-        });
-    });
-    setupCategorySelectAll(container, countElement, mode);
-}
-
-function setupCategorySelectAll(container, countElement, mode) {
-    const selectAllCheckbox = container.parentElement.querySelector('input[type="checkbox"]');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            const checkboxes = container.querySelectorAll('.question-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-            updateCategoryCount(container, countElement);
-            updateTotalSelectedCount(mode);
-        });
-    }
-}
-
-function updateCategoryCount(container, countElement) {
-    const checkedCount = container.querySelectorAll('.question-checkbox:checked').length;
-    if (countElement) countElement.textContent = checkedCount;
-}
-
-function updateTotalSelectedCount(mode) {
-    const prefix = mode === 'edit' ? 'edit' : '';
-    const countElement = document.getElementById(prefix + 'TotalSelectedCount');
-    if (!countElement) return;
-    const javaCount = parseInt(document.getElementById(prefix + 'JavaCount').textContent) || 0;
-    const databaseCount = parseInt(document.getElementById(prefix + 'DatabaseCount').textContent) || 0;
-    const problemSolvingCount = parseInt(document.getElementById(prefix + 'ProblemSolvingCount').textContent) || 0;
-    const total = javaCount + databaseCount + problemSolvingCount;
-    countElement.textContent = total;
-}
-
-function updateTotalRandomCount() {
-    const javaCount = parseInt(document.querySelector('input[name="random_java"]').value) || 0;
-    const databaseCount = parseInt(document.querySelector('input[name="random_database"]').value) || 0;
-    const problemSolvingCount = parseInt(document.querySelector('input[name="random_problem_solving"]').value) || 0;
-    const total = javaCount + databaseCount + problemSolvingCount;
-    document.getElementById('totalRandomCount').value = total;
-}
-function updateEditTotalRandomCount() {
-    const javaCount = parseInt(document.querySelector('input[name="edit_random_java"]').value) || 0;
-    const databaseCount = parseInt(document.querySelector('input[name="edit_random_database"]').value) || 0;
-    const problemSolvingCount = parseInt(document.querySelector('input[name="edit_random_problem_solving"]').value) || 0;
-    const total = javaCount + databaseCount + problemSolvingCount;
-    document.getElementById('editTotalRandomCount').value = total;
-}
-
-function handleQuestionSelectionChange(value, mode) {
-    const prefix = mode === 'edit' ? 'edit' : '';
-    const randomOptions = document.getElementById(prefix + 'RandomOptions');
-    const customOptions = document.getElementById(prefix + 'CustomOptions');
-    if (value === 'random') {
-        randomOptions.style.display = 'block';
-        customOptions.style.display = 'none';
-        if (mode === 'add') updateTotalRandomCount();
-        else updateEditTotalRandomCount();
-    } else if (value === 'custom') {
-        randomOptions.style.display = 'none';
-        customOptions.style.display = 'block';
-        fetchQuestionsAndRender(mode);
-    } else {
-        randomOptions.style.display = 'none';
-        customOptions.style.display = 'none';
-    }
-}
-
-function setupEventListeners() {
-    document.querySelectorAll('input[name="question_selection"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            handleQuestionSelectionChange(this.value, 'add');
-        });
-    });
-    document.querySelectorAll('input[name="edit_question_selection"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            handleQuestionSelectionChange(this.value, 'edit');
-        });
-    });
-    ['random_java', 'random_database', 'random_problem_solving'].forEach(name => {
-        const input = document.querySelector(`input[name="${name}"]`);
-        if (input) input.addEventListener('input', updateTotalRandomCount);
-    });
-    ['edit_random_java', 'edit_random_database', 'edit_random_problem_solving'].forEach(name => {
-        const input = document.querySelector(`input[name="${name}"]`);
-        if (input) input.addEventListener('input', updateEditTotalRandomCount);
-    });
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    setupEventListeners();
-
-    // 지원자 추가 모달이 열릴 때마다 문제 목록 렌더링
-    const addCandidateModal = document.getElementById('addCandidateModal');
-    if (addCandidateModal) {
-        addCandidateModal.addEventListener('show.bs.modal', function() {
-            fetchQuestionsAndRender('add');
-        });
-    }
-
-    // 지원자 추가 폼 submit 이벤트
+    // 지원자 추가 폼 제출
     document.getElementById('addCandidateForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const form = this;
-        const name = form.name.value.trim();
-        const access_date = form.access_date.value;
-        const test_duration = form.test_duration.value;
-        // 문제 선택 방식 확인
-        const selection = form.querySelector('input[name="question_selection"]:checked').value;
-        let selected_questions = [];
-        if (selection === 'custom') {
-            // 직접 선택: 체크된 문제 id 모두 수집
-            selected_questions = Array.from(document.querySelectorAll('#customOptions .question-checkbox:checked')).map(cb => cb.value);
-        } else if (selection === 'random') {
-            // 랜덤 선택: 카테고리별 개수만큼 랜덤 id 요청
-            const javaCount = parseInt(form.random_java.value) || 0;
-            const dbCount = parseInt(form.random_database.value) || 0;
-            const psCount = parseInt(form.random_problem_solving.value) || 0;
-            // 한글 주석: 서버에 랜덤 문제 id 요청 (동기 처리)
-            fetch(`/api/random_questions?java=${javaCount}&database=${dbCount}&problem_solving=${psCount}`)
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        fetch('{{ url_for("add_candidate") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('지원자가 성공적으로 등록되었습니다.');
+                window.location.reload();
+            } else {
+                alert('지원자 등록 실패: ' + result.message);
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('지원자 등록 중 오류가 발생했습니다.');
+        });
+    });
+
+    // 수정 버튼 클릭 시 모달 열기 및 데이터 채우기
+    const editModal = new bootstrap.Modal(document.getElementById('editCandidateModal'));
+    document.querySelectorAll('.edit-candidate-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            document.getElementById('editCandidateId').value = row.dataset.candidateId;
+            document.getElementById('editCandidateName').value = row.dataset.name;
+            document.getElementById('editCandidateAccessDate').value = row.dataset.accessDate;
+            document.getElementById('editCandidateTestDuration').value = row.dataset.testDuration;
+            document.getElementById('editCandidateDepartment').value = row.dataset.departmentId;
+            editModal.show();
+        });
+    });
+
+    // 지원자 수정 폼 제출
+    document.getElementById('editCandidateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        const candidateId = data.candidate_id;
+
+        fetch(`/admin/candidate/edit/${candidateId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('지원자 정보가 수정되었습니다.');
+                window.location.reload();
+            } else {
+                alert('수정 실패: ' + result.message);
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('수정 중 오류가 발생했습니다.');
+        });
+    });
+
+    // 지원자 삭제 기능
+    document.querySelectorAll('.delete-candidate-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const candidateId = row.dataset.candidateId;
+            const candidateName = row.dataset.name;
+
+            if (confirm(`'${candidateName}' 지원자를 정말로 삭제하시겠습니까? 관련 데이터가 모두 삭제됩니다.`)) {
+                fetch(`/admin/candidate/delete/${candidateId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('지원자가 삭제되었습니다.');
+                        window.location.reload();
+                    } else {
+                        alert('삭제 실패: ' + result.message);
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('삭제 중 오류가 발생했습니다.');
+                });
+            }
+        });
+    });
+
+    // 회사 정보 설정 폼 제출
+    document.getElementById('companySettingsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch('{{ url_for("update_company_settings") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('회사 정보가 업데이트되었습니다.');
+                window.location.reload();
+            } else {
+                alert('업데이트 실패: ' + data.message);
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('업데이트 중 오류가 발생했습니다.');
+        });
+    });
+
+    // 부서 추가 폼 제출
+    document.getElementById('addDepartmentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const departmentName = this.querySelector('input[name="name"]').value.trim();
+        if (!departmentName) {
+            alert('부서명을 입력해주세요.');
+            return;
+        }
+
+        fetch('/admin/departments/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name: departmentName })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('부서가 추가되었습니다.');
+                window.location.reload();
+            } else {
+                alert('추가 실패: ' + result.message);
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('부서 추가 중 오류가 발생했습니다.');
+        });
+    });
+
+    // 부서 삭제 기능
+    document.querySelectorAll('.delete-department-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const departmentId = this.dataset.id;
+            const departmentName = this.parentElement.innerText.replace('삭제', '').trim();
+
+            if (confirm(`'${departmentName}' 부서를 정말로 삭제하시겠습니까? 해당 부서에 속한 문제들은 '미지정' 상태가 됩니다.`)) {
+                fetch(`/admin/departments/delete/${departmentId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('부서가 삭제되었습니다.');
+                        window.location.reload();
+                    } else {
+                        alert('삭제 실패: ' + result.message);
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('삭제 중 오류가 발생했습니다.');
+                });
+            }
+        });
+    });
+
+    // 문제 할당 모달 이벤트
+    document.querySelectorAll('.assign-questions-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const departmentId = this.dataset.id;
+            const departmentName = this.dataset.name;
+            document.getElementById('assignDeptId').value = departmentId;
+            document.getElementById('assignDeptName').innerText = departmentName;
+            document.getElementById('filterDepartment').value = '';
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterCategory').value = '';
+            document.getElementById('selectAllQuestions').click();
+            new bootstrap.Modal(document.getElementById('assignQuestionsModal')).show();
+        });
+    });
+
+    // 문제 할당 폼 제출
+    document.getElementById('assignQuestionsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        const departmentId = data.department_id;
+
+        fetch(`/admin/departments/assign_questions`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('문제가 성공적으로 할당되었습니다.');
+                new bootstrap.Modal(document.getElementById('assignQuestionsModal')).hide();
+                window.location.reload();
+            } else {
+                alert('문제 할당 실패: ' + result.message);
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('문제 할당 중 오류가 발생했습니다.');
+        });
+    });
+
+    // =========================
+    // 문제할당 모달 문제 렌더링
+    // =========================
+    // 모든 문제 데이터(백엔드에서 전달)
+    const allQuestions = JSON.parse('{{ questions|tojson|safe }}');
+    const assignQuestionsContainer = document.getElementById('assignQuestionsContainer');
+    const filterDepartment = document.getElementById('filterDepartment');
+    const filterType = document.getElementById('filterType');
+    const filterCategory = document.getElementById('filterCategory');
+    const selectAllBtn = document.getElementById('selectAllQuestions');
+    const deselectAllBtn = document.getElementById('deselectAllQuestions');
+
+    // 체크박스 렌더링 함수
+    function renderQuestions() {
+        const deptId = document.getElementById('assignDeptId').value;
+        const type = filterType.value;
+        const category = filterCategory.value;
+        assignQuestionsContainer.innerHTML = '';
+        // 필터 조건에 맞는 문제만 표시
+        const filtered = allQuestions.filter(q => {
+            // 부서 필터: 미지정(빈값/null) or 해당 부서
+            const deptMatch = (filterDepartment.value === '' || filterDepartment.value === 'unassigned')
+                ? (!q.department_id || q.department_id === null)
+                : q.department_id === filterDepartment.value;
+            // 실제 할당할 부서 문제만 체크박스 활성화
+            const assignable = (q.department_id === deptId || !q.department_id || q.department_id === null);
+            const typeMatch = !type || q.type === type;
+            const categoryMatch = !category || q.category === category;
+            return deptMatch && typeMatch && categoryMatch && assignable;
+        });
+        if (filtered.length === 0) {
+            assignQuestionsContainer.innerHTML = '<div class="text-muted">조건에 맞는 문제가 없습니다.</div>';
+            return;
+        }
+        filtered.forEach(q => {
+            // 체크박스 생성
+            const checked = (q.department_id === deptId) ? 'checked' : '';
+            const html = `<div class="form-check mb-2">
+                <input class="form-check-input question-checkbox" type="checkbox" name="question_ids" value="${q.id}" id="qcb_${q.id}" ${checked}>
+                <label class="form-check-label" for="qcb_${q.id}">
+                    [${q.category}] [${q.type}] [${q.difficulty}] ${q.question}
+                </label>
+            </div>`;
+            assignQuestionsContainer.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    // 모달 열릴 때 렌더링
+    document.querySelectorAll('.assign-questions-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // ... 기존 코드 ...
+            setTimeout(renderQuestions, 100); // 모달 렌더 후 문제 표시
+        });
+    });
+    // 필터 변경 시 렌더링
+    filterDepartment.addEventListener('change', renderQuestions);
+    filterType.addEventListener('change', renderQuestions);
+    filterCategory.addEventListener('change', renderQuestions);
+    // 전체선택/전체해제
+    selectAllBtn.addEventListener('click', function() {
+        assignQuestionsContainer.querySelectorAll('.question-checkbox').forEach(cb => cb.checked = true);
+    });
+    deselectAllBtn.addEventListener('click', function() {
+        assignQuestionsContainer.querySelectorAll('.question-checkbox').forEach(cb => cb.checked = false);
+    });
+
+    // 저장 버튼 클릭 시 폼 제출 트리거
+    document.getElementById('saveAssignQuestionsBtn').addEventListener('click', function() {
+        document.getElementById('assignQuestionsForm').submit();
+    });
+
+    // 지원자 목록에 버튼 추가 (예시: .candidate-manage-btn 클래스)
+    document.querySelectorAll('.candidate-manage-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const candidateId = this.dataset.id;
+            const candidateName = this.dataset.name;
+            document.getElementById('modalCandidateId').value = candidateId;
+            document.getElementById('modalCandidateName').innerText = candidateName;
+            // 문제 세트 불러오기
+            fetch(`/api/candidate/${candidateId}/questions`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        selected_questions = data.selected_questions;
-                        submitCandidate({name, access_date, test_duration, selected_questions});
+                        renderCandidateQuestions(data.selected_questions);
                     } else {
-                        alert('랜덤 문제 선택 오류: ' + (data.message || '서버 오류'));
+                        alert('문제 세트 조회 실패: ' + data.message);
                     }
-                })
-                .catch(() => alert('랜덤 문제 선택 중 오류가 발생했습니다.'));
-            return;
-        } else if (selection === 'all') {
-            // 전체 문제: 모든 문제 id
-            selected_questions = allQuestions.map(q => q.id);
-        } else if (selection === 'none') {
-            // 문제 선택 안함: 빈 배열
-            selected_questions = [];
-        }
-        // 직접 선택/전체/없음은 바로 전송
-        submitCandidate({name, access_date, test_duration, selected_questions});
+                });
+            new bootstrap.Modal(document.getElementById('candidateQuestionsModal')).show();
+        });
     });
-
-    // 지원자 추가 ajax 함수
-    function submitCandidate(payload) {
-        fetch('/admin/candidate/add', {
+    // 문제 재랜덤 버튼
+    document.getElementById('randomizeQuestionsBtn').addEventListener('click', function() {
+        const candidateId = document.getElementById('modalCandidateId').value;
+        fetch(`/api/candidate/${candidateId}/questions/randomize`, {method: 'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    renderCandidateQuestions(data.selected_questions);
+                } else {
+                    alert('랜덤 출제 실패: ' + data.message);
+                }
+            });
+    });
+    // 문제 세트 저장 버튼
+    document.getElementById('saveCandidateQuestionsBtn').addEventListener('click', function() {
+        const candidateId = document.getElementById('modalCandidateId').value;
+        const checked = Array.from(document.querySelectorAll('#candidateQuestionsContainer input[type="checkbox"]:checked')).map(cb => cb.value);
+        fetch(`/api/candidate/${candidateId}/questions/update`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
+            body: JSON.stringify({question_ids: checked})
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // 성공 시 모달 닫고 새로고침
-                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('addCandidateModal'));
-                modal.hide();
-                location.reload();
+                alert('문제 세트가 저장되었습니다.');
             } else {
-                alert('등록 실패: ' + (data.message || '서버 오류'));
+                alert('저장 실패: ' + data.message);
             }
-        })
-        .catch(() => alert('등록 중 오류가 발생했습니다.'));
+        });
+    });
+    // 문제 세트 렌더링 함수
+    function renderCandidateQuestions(selectedIds) {
+        // allQuestions는 기존에 백엔드에서 전달된 전체 문제 데이터
+        let html = '';
+        allQuestions.forEach(q => {
+            const checked = selectedIds.includes(q.id) ? 'checked' : '';
+            html += `<div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" value="${q.id}" id="candq_${q.id}" ${checked}>
+                <label class="form-check-label" for="candq_${q.id}">
+                    [${q.category}] [${q.type}] [${q.difficulty}] ${q.question}
+                </label>
+            </div>`;
+        });
+        document.getElementById('candidateQuestionsContainer').innerHTML = html;
     }
+
+    // 랜덤 출제 개수 설정 불러오기
+    fetch('/api/random_config')
+        .then(res => res.json())
+        .then(cfg => {
+            document.getElementById('javaCountInput').value = cfg.java_count;
+            document.getElementById('dbCountInput').value = cfg.db_count;
+        });
+    // 저장 이벤트
+    document.getElementById('randomConfigForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const javaCount = document.getElementById('javaCountInput').value;
+        const dbCount = document.getElementById('dbCountInput').value;
+        fetch('/api/random_config', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({java_count: javaCount, db_count: dbCount})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('randomConfigMsg').innerText = '저장되었습니다!';
+            } else {
+                document.getElementById('randomConfigMsg').innerText = '저장 실패';
+            }
+            setTimeout(() => { document.getElementById('randomConfigMsg').innerText = ''; }, 2000);
+        });
+    });
 });
 </script>
 {% endblock %}

@@ -63,7 +63,7 @@
                         <ul class="list-unstyled">
                             <li><strong>지원자:</strong> {{ candidate.name }}</li>
                             <li><strong>이메일:</strong> {{ candidate.email }}</li>
-                            <li><strong>평가일시:</strong> {{ result.test_date[:19] if result.test_date else '' }}</li>
+                            <li><strong>평가일시:</strong> {{ result.test_date.replace('T', ' ')[:19] if result.test_date else '' }}</li>
                             <li><strong>총점:</strong> {{ result.total_score }}점</li>
                             <li><strong>순위:</strong> {{ result.rank }}위</li>
                         </ul>
