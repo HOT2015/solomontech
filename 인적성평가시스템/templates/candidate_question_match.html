@@ -37,6 +37,7 @@
         <div>
             <a href="{{ url_for('admin') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> 관리자 페이지로</a>
             <button id="save-btn" class="btn btn-success" disabled><i class="fas fa-save"></i> 변경사항 저장</button>
+            <button id="ai-generate-btn" class="btn btn-primary" disabled><i class="fas fa-robot"></i> AI 맞춤질문 생성</button>
         </div>
     </div>
 
@@ -77,6 +78,11 @@
                 </div>
                 {% endfor %}
             </div>
+            <div id="ai-questions-area" class="mt-3" style="display:none;">
+                <h6>AI 맞춤형 면접 질문</h6>
+                <div id="ai-questions-result" class="border rounded p-2 bg-light"></div>
+                <button id="copy-questions-btn" class="btn btn-outline-secondary btn-sm mt-2">질문 복사</button>
+            </div>
         </div>
     </div>
 </div>
@@ -92,6 +98,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const checkAll = document.getElementById('check-all');
     const saveBtn = document.getElementById('save-btn');
     const placeholder = questionsContainer.querySelector('p');
+    const aiBtn = document.getElementById('ai-generate-btn');
+    const aiArea = document.getElementById('ai-questions-area');
+    const aiResult = document.getElementById('ai-questions-result');
+    const copyBtn = document.getElementById('copy-questions-btn');
 
     candidateLinks.forEach(link => {
         link.addEventListener('click', function (e) {
@@ -106,6 +116,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             document.getElementById('selected-candidate-name').textContent = `(${this.textContent.trim().split('\\n')[0]})`;
             saveBtn.disabled = false;
+            aiBtn.disabled = false;
+            aiArea.style.display = 'none';
+            aiResult.textContent = '';
             
             let hasVisibleQuestions = false;
             allQuestionItems.forEach(item => {
@@ -165,6 +178,43 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(error => {
             console.error('Error:', error);
             alert('저장 중 오류가 발생했습니다.');
+        });
+    });
+
+    aiBtn.addEventListener('click', function() {
+        if (!currentCandidateId) {
+            alert('먼저 지원자를 선택해주세요.');
+            return;
+        }
+        aiBtn.disabled = true;
+        aiBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 생성 중...';
+        fetch(`/api/candidate/${currentCandidateId}/generate_questions`, {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            aiBtn.disabled = false;
+            aiBtn.innerHTML = '<i class="fas fa-robot"></i> AI 맞춤질문 생성';
+            if (data.success) {
+                aiArea.style.display = 'block';
+                aiResult.textContent = data.questions;
+            } else {
+                aiArea.style.display = 'block';
+                aiResult.textContent = data.message;
+            }
+        })
+        .catch(error => {
+            aiBtn.disabled = false;
+            aiBtn.innerHTML = '<i class="fas fa-robot"></i> AI 맞춤질문 생성';
+            aiArea.style.display = 'block';
+            aiResult.textContent = '질문 생성 중 오류가 발생했습니다.';
+        });
+    });
+
+    copyBtn.addEventListener('click', function() {
+        const text = aiResult.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('질문이 복사되었습니다!');
         });
     });
 });

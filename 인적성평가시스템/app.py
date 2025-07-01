@@ -9,6 +9,8 @@ from werkzeug.utils import secure_filename
 import tempfile
 import requests
 import json
+import openai
+from transformers import pipeline
 
 app = Flask(__name__)
 app.secret_key = '인적성평가시스템_시크릿키_2024'  # 세션 관리를 위한 시크릿 키
@@ -18,18 +20,43 @@ app.config['COMPANY_NAME'] = '인적성 평가시스템'  # 회사명 (로고 �
 app.config['COMPANY_DESCRIPTION'] = '기술 역량과 문제 해결력을 통합적으로 평가하는 온라인 시스템'  # 회사 설명
 app.config['COMPANY_LOGO'] = None  # 로고 이미지 파일명 (예: 'logo.png', 'company_logo.jpg' 등)
 
+# BASE_DIR: app.py가 위치한 디렉토리의 절대경로
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 업로드, 데이터, 이미지 폴더의 절대경로 지정
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+DATA_FOLDER = os.path.join(BASE_DIR, 'data')
+STATIC_IMAGES_FOLDER = os.path.join(BASE_DIR, 'static', 'images')
+
+# 업로드 폴더가 없으면 생성
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(DATA_FOLDER, exist_ok=True)
+os.makedirs(STATIC_IMAGES_FOLDER, exist_ok=True)
+
+# 랜덤 설정 파일 경로도 절대경로로 지정
+RANDOM_CONFIG_FILE = os.path.join(DATA_FOLDER, 'random_config.json')
+
 # 데이터 매니저 초기화
 data_manager = DataManager()
 
 # 파일 업로드 관련 설정
-UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'docx'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
-# 업로드 폴더 생성
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# OpenAI API Key 로드 함수
+import configparser
 
-RANDOM_CONFIG_FILE = os.path.join('data', 'random_config.json')
+def get_openai_api_key():
+    # 환경변수 우선, 없으면 config.json에서 로드
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if api_key:
+        return api_key
+    config_path = os.path.join(BASE_DIR, 'config.json')
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            return config.get('OPENAI_API_KEY')
+    return None
 
 def load_random_config():
     """랜덤 출제 개수 설정 로드"""
@@ -924,12 +951,12 @@ def update_company_settings():
             new_filename = f"logo_{timestamp}_{filename}"
             
             # static/images 폴더에 저장
-            logo_path = os.path.join('static', 'images', new_filename)
+            logo_path = os.path.join(STATIC_IMAGES_FOLDER, new_filename)
             logo_file.save(logo_path)
             
             # 기존 로고 파일 삭제 (있는 경우)
             if app.config.get('COMPANY_LOGO'):
-                old_logo_path = os.path.join('static', 'images', app.config['COMPANY_LOGO'])
+                old_logo_path = os.path.join(STATIC_IMAGES_FOLDER, app.config['COMPANY_LOGO'])
                 if os.path.exists(old_logo_path):
                     try:
                         os.remove(old_logo_path)
@@ -1078,6 +1105,93 @@ def set_random_config():
     config = {"java_count": java_count, "db_count": db_count}
     save_random_config(config)
     return jsonify(success=True, config=config)
+
+# 로컬 LLM 파이프라인(최초 1회만 로드)
+local_llm = None
+
+def get_local_llm():
+    global local_llm
+    if local_llm is None:
+        # 한글 특화 모델, 최초 실행 시 다운로드(수 분 소요)
+        local_llm = pipeline("text-generation", model="beomi/KoAlpaca-Polyglot-5.8B", device_map="auto")
+    return local_llm
+
+def generate_questions_with_local_llm(prompt):
+    llm = get_local_llm()
+    # max_new_tokens, temperature 등은 필요에 따라 조정
+    result = llm(prompt, max_new_tokens=256, do_sample=True, temperature=0.7)
+    # 결과에서 질문 부분만 추출
+    return result[0]['generated_text']
+
+@app.route('/api/candidate/<candidate_id>/generate_questions', methods=['POST'])
+def generate_candidate_questions(candidate_id):
+    """
+    지원자 정보를 바탕으로 AI(로컬 LLM 또는 OpenAI 등)로 맞춤형 면접 질문을 생성하는 엔드포인트
+    """
+    # config.json에서 AI_PROVIDER 확인
+    config_path = os.path.join(BASE_DIR, 'config.json')
+    provider = 'openai'
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                config = json.load(f)
+                provider = config.get('AI_PROVIDER', 'openai')
+            except Exception:
+                provider = 'openai'
+    candidate = data_manager.get_candidate(candidate_id)
+    if not candidate:
+        return jsonify({'success': False, 'message': '지원자 정보를 찾을 수 없습니다.'}), 404
+    # 지원자 정보 요약 (이름, 경력, 자기소개 등)
+    resume_text = f"이름: {candidate.name}\n"
+    if hasattr(candidate, 'experience'):
+        resume_text += f"경력: {candidate.experience}\n"
+    if hasattr(candidate, 'self_intro'):
+        resume_text += f"자기소개: {candidate.self_intro}\n"
+    prompt = f"다음 지원자 정보를 참고해서 면접관이 활용할 수 있는 맞춤형 면접 질문 3~5개를 한글로 생성해줘.\n{resume_text}"
+    try:
+        if provider == 'local':
+            questions = generate_questions_with_local_llm(prompt)
+            return jsonify({'success': True, 'questions': questions})
+        else:
+            # 기존 OpenAI 연동 코드(백업)
+            api_key = get_openai_api_key()
+            if not api_key:
+                return jsonify({'success': False, 'message': 'OpenAI API Key가 설정되어 있지 않습니다.'}), 400
+            import openai
+            openai.api_key = api_key
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            questions = response['choices'][0]['message']['content']
+            return jsonify({'success': True, 'questions': questions})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'질문 생성 실패: {str(e)}'}), 500
+
+@app.route('/admin/openai_key', methods=['POST'])
+def set_openai_api_key():
+    """
+    관리자 화면에서 OpenAI API Key를 저장하는 엔드포인트
+    """
+    data = request.get_json()
+    api_key = data.get('openai_api_key')
+    if not api_key:
+        return jsonify({'success': False, 'message': 'API Key가 비어 있습니다.'}), 400
+    config_path = os.path.join(BASE_DIR, 'config.json')
+    config = {}
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                config = json.load(f)
+            except Exception:
+                config = {}
+    config['OPENAI_API_KEY'] = api_key
+    try:
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'저장 실패: {str(e)}'}), 500
 
 if __name__ == '__main__':
     # 개발 서버 실행

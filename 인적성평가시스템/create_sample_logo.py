@@ -55,11 +55,13 @@ try:
         # 테두리 추가
         draw.rectangle([0, 0, width-1, height-1], outline=text_color, width=2)
         
-        # static/images 폴더 생성 (없는 경우)
-        os.makedirs('static/images', exist_ok=True)
+        # BASE_DIR: 현재 파일이 위치한 디렉토리의 절대경로
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        STATIC_IMAGES_FOLDER = os.path.join(BASE_DIR, 'static', 'images')
+        os.makedirs(STATIC_IMAGES_FOLDER, exist_ok=True)  # 폴더가 없으면 생성
         
         # 파일 저장
-        logo_path = 'static/images/sample_logo.png'
+        logo_path = os.path.join(STATIC_IMAGES_FOLDER, 'sample_logo.png')
         image.save(logo_path, 'PNG')
         
         print(f"샘플 로고가 생성되었습니다: {logo_path}")
@@ -79,7 +81,10 @@ except ImportError:
     print("\n대안으로 텍스트 기반 로고 파일을 생성합니다...")
     
     try:
-        os.makedirs('static/images', exist_ok=True)
+        # BASE_DIR: 현재 파일이 위치한 디렉토리의 절대경로
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        STATIC_IMAGES_FOLDER = os.path.join(BASE_DIR, 'static', 'images')
+        os.makedirs(STATIC_IMAGES_FOLDER, exist_ok=True)
         
         # SVG 로고 생성
         svg_content = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -88,10 +93,10 @@ except ImportError:
   <text x="150" y="60" font-family="Arial, sans-serif" font-size="20" fill="#667eea" text-anchor="middle">인적성평가시스템</text>
 </svg>'''
         
-        with open('static/images/sample_logo.svg', 'w', encoding='utf-8') as f:
+        with open(os.path.join(STATIC_IMAGES_FOLDER, 'sample_logo.svg'), 'w', encoding='utf-8') as f:
             f.write(svg_content)
         
-        print("SVG 샘플 로고가 생성되었습니다: static/images/sample_logo.svg")
+        print(f"SVG 샘플 로고가 생성되었습니다: {os.path.join(STATIC_IMAGES_FOLDER, 'sample_logo.svg')}")
         
     except Exception as e:
         print(f"SVG 로고 생성 중 오류: {e}") 

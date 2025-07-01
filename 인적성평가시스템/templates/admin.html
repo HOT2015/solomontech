@@ -549,6 +549,11 @@
         </form>
       </div>
     </div>
+    <div class="d-flex justify-content-end align-items-center mb-3">
+      <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#openaiKeyModal">
+        <i class="fas fa-key"></i> OpenAI API Key 설정
+      </button>
+    </div>
   </div>
 </div>
 
@@ -636,6 +641,31 @@
           </form>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- OpenAI API Key 설정 모달 -->
+<div class="modal fade" id="openaiKeyModal" tabindex="-1">
+  <div class="modal-dialog" style="max-width:480px;">
+    <div class="modal-content">
+      <form id="openaiKeyForm">
+        <div class="modal-header">
+          <h5 class="modal-title">OpenAI API Key 설정</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">API Key</label>
+            <input type="text" name="openai_api_key" id="openaiApiKeyInput" class="form-control" placeholder="sk-..." required>
+            <div class="form-text">OpenAI에서 발급받은 API Key를 입력하세요. (저장 시 서버에 반영)</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="submit" class="btn btn-primary">저장</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -1026,6 +1056,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('randomConfigMsg').innerText = '저장 실패';
             }
             setTimeout(() => { document.getElementById('randomConfigMsg').innerText = ''; }, 2000);
+        });
+    });
+
+    // OpenAI API Key 저장
+    const openaiKeyForm = document.getElementById('openaiKeyForm');
+    openaiKeyForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const key = document.getElementById('openaiApiKeyInput').value.trim();
+        if (!key) {
+            alert('API Key를 입력하세요.');
+            return;
+        }
+        fetch('/admin/openai_key', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ openai_api_key: key })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('API Key가 저장되었습니다.');
+                document.getElementById('openaiApiKeyInput').value = '';
+                var modal = bootstrap.Modal.getInstance(document.getElementById('openaiKeyModal'));
+                modal.hide();
+            } else {
+                alert('저장 실패: ' + data.message);
+            }
+        })
+        .catch(() => {
+            alert('저장 중 오류가 발생했습니다.');
         });
     });
 });

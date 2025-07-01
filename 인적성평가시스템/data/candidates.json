@@ -8,18 +8,8 @@
     "access_date": "2025-06-30",
     "test_duration": 10,
     "selected_questions": [
-      "java_mc_102",
-      "tech_18",
-      "tech_10",
-      "tech_19",
-      "java_mc_130",
-      "tech_19",
-      "java_mc_101",
-      "tech_9",
-      "tech_8",
-      "tech_12",
-      "tech_11",
-      "db_mc_120"
+      "tech_3",
+      "tech_4"
     ],
     "department_id": "dept_1"
   }
