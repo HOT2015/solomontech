@@ -170,69 +170,7 @@
   </div>
 </div>
 
-<!-- 회사 정보 설정 모달: 최상단에 고유ID 표시 -->
-<div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
-  팝업ID: POPUP-COMPANY-SETTINGS (admin.html)
-</div>
-<div class="modal fade" id="companySettingsModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <form id="companySettingsForm" enctype="multipart/form-data">
-        <div class="modal-header">
-          <h5 class="modal-title">회사 정보 설정</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">회사명</label>
-                <input type="text" name="company_name" class="form-control" value="{{ config.get('COMPANY_NAME', '') }}" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">회사 설명</label>
-                <textarea name="company_description" class="form-control" rows="3">{{ config.get('COMPANY_DESCRIPTION', '') }}</textarea>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">로고 이미지</label>
-                <input type="file" name="logo_file" class="form-control" accept="image/*">
-                <div class="form-text">PNG, JPG, JPEG, GIF, SVG 파일 지원 (최대 2MB)</div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="mb-3">
-                <label class="form-label">현재 로고 미리보기</label>
-                <div class="border rounded p-3 text-center" style="min-height: 150px;">
-                  {% if config.get('COMPANY_LOGO') %}
-                    <img src="{{ url_for('static', filename='images/' + config.COMPANY_LOGO) }}" 
-                         alt="현재 로고" class="img-fluid" style="max-height: 120px;">
-                    <p class="mt-2 text-muted">{{ config.COMPANY_LOGO }}</p>
-                  {% else %}
-                    <i class="fas fa-image fa-3x text-muted"></i>
-                    <p class="mt-2 text-muted">로고가 설정되지 않았습니다</p>
-                  {% endif %}
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">로고 제거</label>
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" name="remove_logo" id="removeLogo">
-                  <label class="form-check-label" for="removeLogo">
-                    현재 로고 제거 (기본 아이콘 사용)
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-          <button type="submit" class="btn btn-primary">저장</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+<!-- 회사 정보 설정 모달, form(id='companySettingsForm'), 회사명/설명/로고 input, 파일 업로드, submit 이벤트 JS 등 회사 정보/로고 관리 관련 모든 UI 및 JS 코드 완전 삭제 -->
 
 <!-- 탭 네비게이션 -->
 <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
@@ -772,28 +710,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('삭제 중 오류가 발생했습니다.');
                 });
             }
-        });
-    });
-
-    // 회사 정보 설정 폼 제출
-    document.getElementById('companySettingsForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('{{ url_for("update_company_settings") }}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('회사 정보가 업데이트되었습니다.');
-                window.location.reload();
-            } else {
-                alert('업데이트 실패: ' + data.message);
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-            alert('업데이트 중 오류가 발생했습니다.');
         });
     });
 

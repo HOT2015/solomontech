@@ -1,0 +1,4 @@
+Flask==2.3.3
+Jinja2==3.1.2
+Werkzeug==2.3.7
+# openpyxl, python-docx, pandas 등 파일 업로드용 패키지 삭제 

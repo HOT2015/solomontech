@@ -19,9 +19,6 @@
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
                     <i class="fas fa-plus"></i> 새 문제 추가
                 </button>
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadFileModal">
-                    <i class="fas fa-upload"></i> 파일로 문제 추가
-                </button>
                 <a href="{{ url_for('admin') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> 관리자 페이지로
                 </a>
@@ -250,85 +247,7 @@
     </div>
 </div>
 
-<!-- 파일 업로드 모달: 최상단에 고유ID 표시 -->
-<div class="modal fade" id="uploadFileModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
-                팝업ID: POPUP-UPLOAD-QUESTION (question_manage.html)
-            </div>
-            <div class="modal-header">
-                <h5 class="modal-title">파일로 문제 추가</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="uploadFileForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">파일 선택</label>
-                        <input type="file" name="file" class="form-control" accept=".xlsx,.docx" required>
-                        <div class="form-text">Excel(.xlsx) 또는 Word(.docx) 파일을 선택하세요. (최대 10MB)</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h6>파일 형식 안내</h6>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="text-primary">Excel 파일 형식</h6>
-                                <small class="text-muted">
-                                    첫 번째 시트에 다음 순서로 데이터를 입력하세요:<br>
-                                    카테고리 | 유형 | 난이도 | 문제 | 배점 | 선택지1 | 선택지2 | 선택지3 | 선택지4 | 정답
-                                </small>
-                                <br><br>
-                                <a href="{{ url_for('download_sample_excel') }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-download"></i> 샘플 Excel 다운로드
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="text-primary">Word 파일 형식</h6>
-                                <small class="text-muted">
-                                    각 문제를 다음과 같은 형식으로 작성하세요:<br>
-                                    카테고리|유형|난이도|문제내용<br>
-                                    문제 상세 내용<br>
-                                    1. 선택지1<br>
-                                    2. 선택지2<br>
-                                    3. 선택지3<br>
-                                    4. 선택지4<br>
-                                    정답: 정답내용
-                                </small>
-                                <br><br>
-                                <a href="{{ url_for('download_sample_word') }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-download"></i> 샘플 Word 다운로드
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 업로드 진행률 -->
-                    <div id="uploadProgress" style="display:none;">
-                        <div class="progress mb-3">
-                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                        </div>
-                        <div id="uploadStatus" class="text-muted"></div>
-                    </div>
-                    
-                    <!-- 업로드 결과 -->
-                    <div id="uploadResult" style="display:none;">
-                        <div id="resultAlert" class="alert">
-                            <div id="resultTitle"></div>
-                            <div id="resultDetails"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="submit" class="btn btn-success" id="uploadBtn">
-                        <i class="fas fa-upload"></i> 업로드
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- 파일 업로드(엑셀/워드) 관련 버튼, modal, form, 샘플 다운로드, 진행률, 업로드 결과, JS 코드 등 UI 요소와 텍스트, 주석, id, class, script 등 모두 삭제 -->
 
 {% endblock %}
 
