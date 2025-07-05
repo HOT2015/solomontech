@@ -377,35 +377,33 @@
                         <i class="fas fa-chart-pie"></i> 점수 분포
                     </h5>
                     <div class="row text-center">
-                        <div class="col-4">
+                        <div class="col-3">
                             <h4 class="text-success">
                                 {% set excellent = candidate_results.values()|selectattr('result.total_score', '>=', 150)|list|length %}
                                 {{ excellent }}
                             </h4>
-                            <small class="text-muted">우수 (150점↑)</small>
+                            <small class="text-muted">우수<br>(150점↑)</small>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <h4 class="text-info">
                                 {% set good = candidate_results.values()|selectattr('result.total_score', '>=', 120)|selectattr('result.total_score', '<', 150)|list|length %}
                                 {{ good }}
                             </h4>
-                            <small class="text-muted">양호 (120-149점)</small>
+                            <small class="text-muted">양호<br>(120-149점)</small>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <h4 class="text-warning">
                                 {% set normal = candidate_results.values()|selectattr('result.total_score', '>=', 90)|selectattr('result.total_score', '<', 120)|list|length %}
                                 {{ normal }}
                             </h4>
-                            <small class="text-muted">보통 (90-119점)</small>
+                            <small class="text-muted">보통<br>(90-119점)</small>
                         </div>
-                    </div>
-                    <div class="row text-center mt-3">
-                        <div class="col-12">
+                        <div class="col-3">
                             <h4 class="text-danger">
                                 {% set poor = candidate_results.values()|selectattr('result.total_score', '<', 90)|list|length %}
                                 {{ poor }}
                             </h4>
-                            <small class="text-muted">개선 필요 (90점↓)</small>
+                            <small class="text-muted">개선 필요<br>(90점↓)</small>
                         </div>
                     </div>
                 </div>
@@ -723,18 +721,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateDepartmentList() {
         fetch('/api/departments')
             .then(response => response.json())
-            .then(departments => {
+            .then(data => {
                 const tbody = document.querySelector('#addDepartmentForm').closest('.card-body').querySelector('table tbody');
                 tbody.innerHTML = '';
+                
+                // departments 배열이 data.departments에 있는지 확인
+                const departments = data.departments || data;
                 
                 departments.forEach((dept, index) => {
                     const row = `
                         <tr>
                             <td>${index + 1}</td>
-                            <td>${dept.name}</td>
+                            <td>${dept.name || '부서명 없음'}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary assign-questions-btn" data-id="${dept.id}" data-name="${dept.name}">문제할당</button>
-                                <button class="btn btn-sm btn-outline-danger delete-department-btn" data-id="${dept.id}">삭제</button>
+                                <button class="btn btn-sm btn-outline-primary assign-questions-btn" data-id="${dept.id}" data-name="${dept.name || '부서명 없음'}">문제할당</button>
+                                <button class="btn btn-sm btn-outline-danger delete-department-btn" data-id="${dept.id}" data-name="${dept.name || '부서명 없음'}">삭제</button>
                             </td>
                         </tr>
                     `;
@@ -756,7 +757,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.delete-department-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const departmentId = this.dataset.id;
-                const departmentName = this.parentElement.innerText.replace('삭제', '').trim();
+                const departmentName = this.dataset.name || '알 수 없는 부서';
 
                 if (confirm(`'${departmentName}' 부서를 정말로 삭제하시겠습니까? 해당 부서에 속한 문제들은 '미지정' 상태가 됩니다.`)) {
                     fetch(`/admin/departments/delete/${departmentId}`, {
