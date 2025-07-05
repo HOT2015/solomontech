@@ -45,9 +45,14 @@
                                 <input class="form-check-input category-radio" type="radio" name="categoryRadio" id="categoryDatabase" value="Database">
                                 <label class="form-check-label" for="categoryDatabase">Database</label>
                             </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input category-radio" type="radio" name="categoryRadio" id="categoryProblemSolving" value="문제해결">
+                                <label class="form-check-label" for="categoryProblemSolving">문제해결</label>
+                            </div>
                         </div>
                         <div class="col-auto">
                             <select id="departmentFilter" class="form-select form-select-sm">
+                                <option value="">전체 부서</option>
                                 {% for dept in departments %}
                                 <option value="{{ dept.id }}">{{ dept.name }}</option>
                                 {% endfor %}
@@ -89,6 +94,20 @@
                                                 </ul>
                                                 <small class="text-success">정답: {{ question.correct_answer }}</small>
                                             </div>
+                                            {% elif question.type == "주관식" %}
+                                            <div class="mt-2">
+                                                <small class="text-success">정답 예시: {{ question.correct_answer }}</small>
+                                                {% if question.keywords %}
+                                                <div class="mt-1">
+                                                    <small class="text-muted">채점 키워드:</small>
+                                                    <div class="ms-3">
+                                                        {% for keyword in question.keywords %}
+                                                        <span class="badge bg-light text-dark me-1">{{ keyword }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
                                             {% endif %}
                                         </div>
                                         <div class="col-md-4 text-end">
@@ -103,10 +122,75 @@
                                 </div>
                             </div>
                             {% endfor %}
-                        {% else %}
-                            <p class="text-center text-muted">등록된 문제가 없습니다.</p>
                         {% endif %}
                     </div>
+                    
+                    <!-- 문제해결 문제 목록 -->
+                    <div id="problemSolvingQuestions">
+                        {% if problem_solving_questions %}
+                            {% for question in problem_solving_questions %}
+                            <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}" data-department-id="{{ question.department_id or '' }}">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h6 class="card-title">{{ question.question }}</h6>
+                                            <div class="question-meta">
+                                                <span class="badge bg-primary">{{ question.category }}</span>
+                                                <span class="badge bg-secondary">{{ question.type }}</span>
+                                                <span class="badge bg-info">{{ question.difficulty }}</span>
+                                                <span class="badge bg-success">{{ question.points }}점</span>
+                                                {% set dept_name = '미지정' %}
+                                                {% for dept in departments %}
+                                                    {% if dept.id == question.department_id %}
+                                                        {% set dept_name = dept.name %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="badge bg-dark">{{ dept_name if question.department_id else '미지정' }}</span>
+                                            </div>
+                                            {% if question.type == "객관식" %}
+                                            <div class="mt-2">
+                                                <small class="text-muted">선택지:</small>
+                                                <ul class="list-unstyled ms-3">
+                                                    {% for option in question.options %}
+                                                    <li>{{ loop.index }}. {{ option }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                                <small class="text-success">정답: {{ question.correct_answer }}</small>
+                                            </div>
+                                            {% elif question.type == "주관식" %}
+                                            <div class="mt-2">
+                                                <small class="text-success">정답 예시: {{ question.correct_answer }}</small>
+                                                {% if question.keywords %}
+                                                <div class="mt-1">
+                                                    <small class="text-muted">채점 키워드:</small>
+                                                    <div class="ms-3">
+                                                        {% for keyword in question.keywords %}
+                                                        <span class="badge bg-light text-dark me-1">{{ keyword }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <a href="{{ url_for('edit_question_page', question_id=question.id) }}" class="btn btn-sm btn-outline-primary edit-question" data-id="{{ question.id }}">
+                                                <i class="fas fa-edit"></i> 수정
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-danger unassign-question" data-id="{{ question.id }}">
+                                                <i class="fas fa-trash"></i> 해제
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    {% if not technical_questions and not problem_solving_questions %}
+                        <p class="text-center text-muted">등록된 문제가 없습니다.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -149,6 +233,10 @@
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="category" id="addCategoryDatabase" value="Database">
                                         <label class="form-check-label" for="addCategoryDatabase">Database</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="category" id="addCategoryProblemSolving" value="문제해결">
+                                        <label class="form-check-label" for="addCategoryProblemSolving">문제해결</label>
                                     </div>
                                 </div>
                             </div>

@@ -13,7 +13,8 @@
         "RETRIEVE"
       ],
       "correct_answer": "SELECT",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_4",
@@ -28,7 +29,8 @@
         "PUT"
       ],
       "correct_answer": "INSERT",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_5",
@@ -43,7 +45,8 @@
         "MERGE"
       ],
       "correct_answer": "JOIN",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_6",
@@ -60,7 +63,8 @@
         "10",
         "++"
       ],
-      "points": 20
+      "points": 20,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_7",
@@ -75,7 +79,8 @@
         "println",
         "Hello"
       ],
-      "points": 20
+      "points": 20,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_8",
@@ -90,7 +95,8 @@
         "int arr = [1,2,3,4,5]"
       ],
       "correct_answer": "int[] arr = new int[5]",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_9",
@@ -105,7 +111,8 @@
         "abstract"
       ],
       "correct_answer": "implements",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_10",
@@ -120,7 +127,8 @@
         "none"
       ],
       "correct_answer": "void",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_11",
@@ -135,7 +143,8 @@
         "EDIT"
       ],
       "correct_answer": "UPDATE",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_12",
@@ -150,7 +159,8 @@
         "CLEAR"
       ],
       "correct_answer": "DELETE",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_13",
@@ -165,7 +175,8 @@
         "SINGLE"
       ],
       "correct_answer": "DISTINCT",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_14",
@@ -180,7 +191,8 @@
         "=",
         "10"
       ],
-      "points": 20
+      "points": 20,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_15",
@@ -199,7 +211,8 @@
         "println",
         "positive"
       ],
-      "points": 20
+      "points": 20,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_16",
@@ -214,7 +227,8 @@
         "FROM",
         "users"
       ],
-      "points": 20
+      "points": 20,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_17",
@@ -233,7 +247,8 @@
         ">=",
         "50000"
       ],
-      "points": 20
+      "points": 20,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_18",
@@ -248,7 +263,8 @@
         "for-while"
       ],
       "correct_answer": "try-catch",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "tech_19",
@@ -263,7 +279,8 @@
         "||"
       ],
       "correct_answer": "+",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "tech_20",
@@ -278,26 +295,12 @@
         "GROUP BY"
       ],
       "correct_answer": "ORDER BY",
-      "points": 10
-    },
-    {
-      "id": "tech_19",
-      "category": "Java",
-      "type": "객관식",
-      "difficulty": "초급",
-      "question": "테스트 문제",
       "points": 10,
-      "options": [
-        "1",
-        "2",
-        "3",
-        "4"
-      ],
-      "correct_answer": ""
+      "department_id": "dept_2"
     },
     {
       "id": "java_mc_2",
-      "department_id": "dept_2",
+      "department_id": "dept_1",
       "category": "Java",
       "type": "객관식",
       "difficulty": "중",
@@ -313,7 +316,7 @@
     },
     {
       "id": "java_mc_4",
-      "department_id": "dept_2",
+      "department_id": "dept_1",
       "category": "Java",
       "type": "객관식",
       "difficulty": "중",
@@ -329,7 +332,7 @@
     },
     {
       "id": "db_mc_2",
-      "department_id": "dept_1",
+      "department_id": "dept_2",
       "category": "Database",
       "type": "객관식",
       "difficulty": "중",
@@ -345,7 +348,7 @@
     },
     {
       "id": "db_mc_3",
-      "department_id": "dept_2",
+      "department_id": "dept_1",
       "category": "Database",
       "type": "객관식",
       "difficulty": "상",
@@ -365,9 +368,15 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "Java 객관식 샘플 1",
-      "options": ["A", "B", "C", "D"],
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
       "correct_answer": "A",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "java_mc_102",
@@ -375,9 +384,15 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "Java 객관식 샘플 2",
-      "options": ["A", "B", "C", "D"],
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
       "correct_answer": "B",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "java_mc_130",
@@ -385,9 +400,15 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "Java 객관식 샘플 30",
-      "options": ["A", "B", "C", "D"],
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
       "correct_answer": "D",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "java_sub_101",
@@ -395,9 +416,13 @@
       "type": "주관식",
       "difficulty": "초급",
       "question": "Java 주관식 샘플 1",
-      "keywords": ["키워드1", "키워드2"],
+      "keywords": [
+        "키워드1",
+        "키워드2"
+      ],
       "correct_answer": "정답 예시 1",
-      "points": 20
+      "points": 20,
+      "department_id": "dept_1"
     },
     {
       "id": "java_sub_110",
@@ -405,9 +430,13 @@
       "type": "주관식",
       "difficulty": "중급",
       "question": "Java 주관식 샘플 10",
-      "keywords": ["키워드1", "키워드2"],
+      "keywords": [
+        "키워드1",
+        "키워드2"
+      ],
       "correct_answer": "정답 예시 10",
-      "points": 20
+      "points": 20,
+      "department_id": "dept_2"
     },
     {
       "id": "db_mc_101",
@@ -415,9 +444,15 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "DB 객관식 샘플 1",
-      "options": ["A", "B", "C", "D"],
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
       "correct_answer": "A",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_1"
     },
     {
       "id": "db_mc_120",
@@ -425,9 +460,15 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "DB 객관식 샘플 20",
-      "options": ["A", "B", "C", "D"],
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
       "correct_answer": "D",
-      "points": 10
+      "points": 10,
+      "department_id": "dept_2"
     },
     {
       "id": "db_sub_101",
@@ -435,9 +476,13 @@
       "type": "주관식",
       "difficulty": "초급",
       "question": "DB 주관식 샘플 1",
-      "keywords": ["키워드1", "키워드2"],
+      "keywords": [
+        "키워드1",
+        "키워드2"
+      ],
       "correct_answer": "정답 예시 1",
-      "points": 20
+      "points": 20,
+      "department_id": "dept_1"
     },
     {
       "id": "db_sub_110",
@@ -445,9 +490,109 @@
       "type": "주관식",
       "difficulty": "중급",
       "question": "DB 주관식 샘플 10",
-      "keywords": ["키워드1", "키워드2"],
+      "keywords": [
+        "키워드1",
+        "키워드2"
+      ],
       "correct_answer": "정답 예시 10",
-      "points": 20
+      "points": 20,
+      "department_id": "dept_2"
+    },
+    {
+      "id": "tech_32",
+      "category": "Java",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "테스트문제 12",
+      "points": 10,
+      "options": [
+        "선택1",
+        "선택2",
+        "선택3",
+        "선택4"
+      ],
+      "correct_answer": "3"
+    },
+    {
+      "id": "tech_33",
+      "category": "Java",
+      "type": "주관식",
+      "difficulty": "초급",
+      "question": "캐피탈 주관식",
+      "points": 20,
+      "department_id": "dept_2",
+      "keywords": [
+        "파티",
+        "식이"
+      ],
+      "correct_answer": "관식이 할로윈 파티"
+    }
+  ],
+  "problem_solving_questions": [
+    {
+      "id": "ps_1",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "프로젝트 일정이 지연되었을 때 가장 우선적으로 해야 할 일은?",
+      "options": [
+        "팀원들에게 야근을 요청한다",
+        "일정을 재조정하고 우선순위를 정한다",
+        "고객에게 일정 연기를 요청한다",
+        "기존 기능을 줄여서라도 일정을 맞춘다"
+      ],
+      "correct_answer": "일정을 재조정하고 우선순위를 정한다",
+      "points": 15,
+      "department_id": "dept_1"
+    },
+    {
+      "id": "ps_2",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "중급",
+      "question": "팀원 간 의견 충돌이 발생했을 때 해결 방법으로 가장 적절한 것은?",
+      "objective_answer": "각자의 의견을 듣고 합의점을 찾는다",
+      "options": [
+        "상급자의 결정을 기다린다",
+        "각자의 의견을 듣고 합의점을 찾는다",
+        "다수결로 결정한다",
+        "기존 방식을 그대로 유지한다"
+      ],
+      "correct_answer": "각자의 의견을 듣고 합의점을 찾는다",
+      "points": 15,
+      "department_id": "dept_2"
+    },
+    {
+      "id": "ps_3",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "새로운 기술을 도입할 때 고려해야 할 가장 중요한 요소는?",
+      "options": [
+        "기술의 최신성",
+        "팀의 학습 능력과 프로젝트 일정",
+        "라이선스 비용",
+        "기술의 인기도"
+      ],
+      "correct_answer": "팀의 학습 능력과 프로젝트 일정",
+      "points": 15,
+      "department_id": "dept_1"
+    },
+    {
+      "id": "ps_4",
+      "category": "문제해결",
+      "type": "객관식",
+      "difficulty": "초급",
+      "question": "당나귀",
+      "points": 10,
+      "department_id": "dept_1",
+      "options": [
+        "12",
+        "2",
+        "3",
+        "4"
+      ],
+      "correct_answer": "1"
     }
   ]
 }

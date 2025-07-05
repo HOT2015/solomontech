@@ -89,8 +89,16 @@
                         <div class="text-muted mt-2">
                             <small>
                                 <i class="fas fa-star"></i> 배점: {{ question.points }}점
-                                {% if question.type == "주관식" and question.keywords %}
-                                <br><i class="fas fa-key"></i> 키워드: {{ question.keywords|join(', ') }}
+                                {% if question.type == "주관식" %}
+                                {% if question.correct_answer %}
+                                <br><i class="fas fa-lightbulb"></i> 정답 예시: <span class="text-success">{{ question.correct_answer }}</span>
+                                {% endif %}
+                                {% if question.keywords %}
+                                <br><i class="fas fa-key"></i> 키워드: 
+                                {% for keyword in question.keywords %}
+                                <span class="badge bg-light text-dark me-1">{{ keyword }}</span>
+                                {% endfor %}
+                                {% endif %}
                                 {% endif %}
                             </small>
                         </div>

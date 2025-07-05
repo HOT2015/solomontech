@@ -30,6 +30,9 @@ data_manager = DataManager()
 ALLOWED_EXTENSIONS = {'xlsx', 'docx'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
+# 랜덤 설정 파일 경로
+RANDOM_CONFIG_FILE = os.path.join(BASE_DIR, 'data', 'random_config.json')
+
 # OpenAI API Key 로드 함수
 import configparser
 
@@ -56,6 +59,11 @@ def load_random_config():
 
 def save_random_config(config):
     """랜덤 출제 개수 설정 저장"""
+    # data 디렉토리가 없으면 생성
+    data_dir = os.path.dirname(RANDOM_CONFIG_FILE)
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    
     with open(RANDOM_CONFIG_FILE, 'w', encoding='utf-8') as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
 
@@ -269,16 +277,26 @@ def delete_candidate(candidate_id):
 @app.route('/admin/questions')
 def question_manage():
     """문제 관리 페이지"""
-    questions = data_manager.load_questions()
+    technical_questions = data_manager.load_questions()
+    # 문제해결 문제도 로드
+    questions_data = data_manager._load_json(data_manager.questions_file)
+    problem_solving_questions = questions_data.get("problem_solving_questions", [])
     departments = data_manager.load_departments()
-    return render_template('question_manage.html', technical_questions=questions, departments=departments)
+    return render_template('question_manage.html', 
+                         technical_questions=technical_questions, 
+                         problem_solving_questions=problem_solving_questions,
+                         departments=departments)
 
 @app.route('/admin/questions/add', methods=['POST'])
 def add_question():
     try:
         data = request.get_json()
+        
+        # 카테고리별로 다른 처리
         if data['category'] in ['Java', 'Database']:
-            existing_questions = data_manager._load_json(data_manager.questions_file)["technical_questions"]
+            # 기술 문제 처리
+            questions_data = data_manager._load_json(data_manager.questions_file)
+            existing_questions = questions_data["technical_questions"]
             new_id = f"tech_{len(existing_questions) + 1}"
             question_data = {
                 'id': new_id,
@@ -286,7 +304,8 @@ def add_question():
                 'type': data['type'],
                 'difficulty': data['difficulty'],
                 'question': data['question'],
-                'points': int(data['points'])
+                'points': int(data['points']),
+                'department_id': data.get('department_id', 'dept_1')  # 부서 ID 추가
             }
             if data['type'] == '객관식':
                 question_data['options'] = data['options']
@@ -294,12 +313,43 @@ def add_question():
             else:
                 question_data['keywords'] = data['keywords']
                 question_data['correct_answer'] = data['correct_answer']
-            questions_data = data_manager._load_json(data_manager.questions_file)
+            
             questions_data["technical_questions"].append(question_data)
             data_manager._save_json(data_manager.questions_file, questions_data)
-            return jsonify({'success': True, 'message': '문제가 추가되었습니다.'})
+            
+        elif data['category'] == '문제해결':
+            # 문제해결 문제 처리
+            questions_data = data_manager._load_json(data_manager.questions_file)
+            # problem_solving_questions 키가 없으면 생성
+            if "problem_solving_questions" not in questions_data:
+                questions_data["problem_solving_questions"] = []
+            
+            existing_questions = questions_data["problem_solving_questions"]
+            new_id = f"ps_{len(existing_questions) + 1}"
+            question_data = {
+                'id': new_id,
+                'category': data['category'],
+                'type': data['type'],
+                'difficulty': data['difficulty'],
+                'question': data['question'],
+                'points': int(data['points']),
+                'department_id': data.get('department_id', 'dept_1')  # 부서 ID 추가
+            }
+            if data['type'] == '객관식':
+                question_data['options'] = data['options']
+                question_data['correct_answer'] = data['correct_answer']
+            else:
+                question_data['keywords'] = data['keywords']
+                question_data['correct_answer'] = data['correct_answer']
+            
+            questions_data["problem_solving_questions"].append(question_data)
+            data_manager._save_json(data_manager.questions_file, questions_data)
+            
         else:
-            return jsonify({'success': False, 'message': '카테고리는 Java 또는 Database만 허용됩니다.'})
+            return jsonify({'success': False, 'message': '지원하지 않는 카테고리입니다. Java, Database, 문제해결 중 선택해주세요.'})
+        
+        return jsonify({'success': True, 'message': '문제가 추가되었습니다.'})
+        
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
@@ -308,6 +358,8 @@ def edit_question(question_id):
     try:
         data = request.get_json()
         questions_data = data_manager._load_json(data_manager.questions_file)
+        
+        # 기술 문제에서 찾기
         for question in questions_data["technical_questions"]:
             if question['id'] == question_id:
                 question.update({
@@ -315,7 +367,8 @@ def edit_question(question_id):
                     'type': data['type'],
                     'difficulty': data['difficulty'],
                     'question': data['question'],
-                    'points': int(data['points'])
+                    'points': int(data['points']),
+                    'department_id': data.get('department_id', 'dept_1')
                 })
                 if data['type'] == '객관식':
                     question['options'] = data['options']
@@ -325,6 +378,28 @@ def edit_question(question_id):
                     question['correct_answer'] = data['correct_answer']
                 data_manager._save_json(data_manager.questions_file, questions_data)
                 return jsonify({'success': True, 'message': '문제가 수정되었습니다.'})
+        
+        # 문제해결 문제에서 찾기
+        problem_solving_questions = questions_data.get("problem_solving_questions", [])
+        for question in problem_solving_questions:
+            if question['id'] == question_id:
+                question.update({
+                    'category': data['category'],
+                    'type': data['type'],
+                    'difficulty': data['difficulty'],
+                    'question': data['question'],
+                    'points': int(data['points']),
+                    'department_id': data.get('department_id', 'dept_1')
+                })
+                if data['type'] == '객관식':
+                    question['options'] = data['options']
+                    question['correct_answer'] = data['correct_answer']
+                else:
+                    question['keywords'] = data['keywords']
+                    question['correct_answer'] = data['correct_answer']
+                data_manager._save_json(data_manager.questions_file, questions_data)
+                return jsonify({'success': True, 'message': '문제가 수정되었습니다.'})
+        
         return jsonify({'success': False, 'message': '문제를 찾을 수 없습니다.'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -333,11 +408,22 @@ def edit_question(question_id):
 def delete_question(question_id):
     try:
         questions_data = data_manager._load_json(data_manager.questions_file)
+        
+        # 기술 문제에서 찾기
         for i, question in enumerate(questions_data["technical_questions"]):
             if question['id'] == question_id:
                 del questions_data["technical_questions"][i]
                 data_manager._save_json(data_manager.questions_file, questions_data)
                 return jsonify({'success': True, 'message': '문제가 삭제되었습니다.'})
+        
+        # 문제해결 문제에서 찾기
+        problem_solving_questions = questions_data.get("problem_solving_questions", [])
+        for i, question in enumerate(problem_solving_questions):
+            if question['id'] == question_id:
+                del questions_data["problem_solving_questions"][i]
+                data_manager._save_json(data_manager.questions_file, questions_data)
+                return jsonify({'success': True, 'message': '문제가 삭제되었습니다.'})
+        
         return jsonify({'success': False, 'message': '문제를 찾을 수 없습니다.'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -353,7 +439,8 @@ def edit_question_page(question_id):
             return render_template('question_edit.html', question=question)
     
     # 문제해결 문제에서 찾기
-    for question in questions_data["problem_solving_questions"]:
+    problem_solving_questions = questions_data.get("problem_solving_questions", [])
+    for question in problem_solving_questions:
         if question['id'] == question_id:
             return render_template('question_edit.html', question=question)
     
@@ -378,6 +465,12 @@ def api_questions():
         'options': q.options,
         'points': q.points
     } for q in questions])
+
+@app.route('/api/departments')
+def api_departments():
+    """부서 목록 API"""
+    departments = data_manager.load_departments()
+    return jsonify([{'id': dept.id, 'name': dept.name} for dept in departments])
 
 @app.route('/api/candidates')
 def api_candidates():
@@ -567,13 +660,20 @@ def candidate_question_match():
     all_candidates = data_manager.get_all_candidates()
     all_questions = data_manager.load_questions()
     all_departments = data_manager.load_departments()
+    all_results = data_manager.get_all_results()
+    
+    # 평가완료된 지원자 ID 목록 생성
+    completed_candidate_ids = {result.candidate_id for result in all_results}
+    
+    # 평가 미완료 지원자만 필터링
+    incomplete_candidates = [c for c in all_candidates if c.id not in completed_candidate_ids]
     
     # 부서 이름을 id에 매핑시켜두면 템플릿에서 사용하기 편리함
     department_map = {d.id: d.name for d in all_departments}
 
     return render_template('candidate_question_match.html',
-                           candidates=all_candidates,
-                           questions=all_questions,
+                           candidates=incomplete_candidates,
+                           questions=[q.to_dict() for q in all_questions],
                            departments=all_departments,
                            department_map=department_map)
 
@@ -661,24 +761,7 @@ def unassign_question_department(question_id):
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
-@app.route('/api/candidate/<candidate_id>/questions/randomize', methods=['POST'])
-def randomize_candidate_questions(candidate_id):
-    """지원자별 문제 세트를 JAVA 객관식 10, DB 객관식 3개로 다시 랜덤 할당하는 API"""
-    candidate = data_manager.get_candidate(candidate_id)
-    if not candidate:
-        return jsonify(success=False, message="지원자를 찾을 수 없습니다."), 404
-    all_questions = data_manager.load_questions()
-    # 지원자 부서에 해당하는 문제만 필터링
-    department_questions = [q for q in all_questions if q.department_id == candidate.department_id]
-    java_objective = [q for q in department_questions if q.category == 'Java' and q.type == '객관식']
-    db_objective = [q for q in department_questions if q.category == 'Database' and q.type == '객관식']
-    import random
-    selected_java = random.sample(java_objective, min(len(java_objective), 10))
-    selected_db = random.sample(db_objective, min(len(db_objective), 3))
-    selected_ids = [q.id for q in selected_java] + [q.id for q in selected_db]
-    candidate.selected_questions = selected_ids
-    data_manager.update_candidate(candidate)
-    return jsonify(success=True, selected_questions=selected_ids)
+
 
 @app.route('/api/random_config', methods=['GET'])
 def get_random_config():
@@ -686,12 +769,25 @@ def get_random_config():
 
 @app.route('/api/random_config', methods=['POST'])
 def set_random_config():
-    data = request.get_json()
-    java_count = int(data.get('java_count', 10))
-    db_count = int(data.get('db_count', 3))
-    config = {"java_count": java_count, "db_count": db_count}
-    save_random_config(config)
-    return jsonify(success=True, config=config)
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify(success=False, message="데이터가 전송되지 않았습니다."), 400
+        
+        java_count = int(data.get('java_count', 10))
+        db_count = int(data.get('db_count', 3))
+        
+        # 유효성 검사
+        if java_count < 1 or db_count < 1:
+            return jsonify(success=False, message="출제 개수는 1 이상이어야 합니다."), 400
+        
+        config = {"java_count": java_count, "db_count": db_count}
+        save_random_config(config)
+        return jsonify(success=True, config=config, message="랜덤 출제 설정이 저장되었습니다.")
+    except ValueError as e:
+        return jsonify(success=False, message="잘못된 숫자 형식입니다."), 400
+    except Exception as e:
+        return jsonify(success=False, message=f"저장 중 오류가 발생했습니다: {str(e)}"), 500
 
 # 로컬 LLM 파이프라인(최초 1회만 로드)
 local_llm = None

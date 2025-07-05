@@ -7,6 +7,14 @@
     {
       "id": "dept_2",
       "name": "카드캐피탈"
+    },
+    {
+      "id": "dept_5aafbf07-65dc-4967-9c04-822dd460c8ef",
+      "name": "BDP"
+    },
+    {
+      "id": "dept_90d93f2e-3564-459e-b625-ee80cfb443f6",
+      "name": "TMC(서울역)"
     }
   ]
-} 
+}

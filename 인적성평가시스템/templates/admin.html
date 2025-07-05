@@ -170,7 +170,7 @@
   </div>
 </div>
 
-<!-- 회사 정보 설정 모달, form(id='companySettingsForm'), 회사명/설명/로고 input, 파일 업로드, submit 이벤트 JS 등 회사 정보/로고 관리 관련 모든 UI 및 JS 코드 완전 삭제 -->
+<!-- 회사 정보 설정 모달, form(id='companySettingsForm'), 회사명/설명/로고 input, 파일 업로드, submit 이벤트 JS 등 회사 정보/로고 관련 모든 UI 및 JS 코드 완전 삭제 -->
 
 <!-- 탭 네비게이션 -->
 <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
@@ -309,9 +309,15 @@
                                     </td>
                                     <td>{{ candidate_results[c.id].total_score if candidate_results[c.id] else 'N/A' }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary edit-candidate-btn">
-                                            <i class="fas fa-edit"></i> 수정
-                                        </button>
+                                        {% if candidate_results[c.id] %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled title="평가완료된 지원자는 수정할 수 없습니다">
+                                                <i class="fas fa-edit"></i> 수정
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-primary edit-candidate-btn">
+                                                <i class="fas fa-edit"></i> 수정
+                                            </button>
+                                        {% endif %}
                                         <button class="btn btn-sm btn-outline-danger delete-candidate-btn">
                                             <i class="fas fa-trash"></i> 삭제
                                         </button>
@@ -320,9 +326,7 @@
                                             <i class="fas fa-file-alt"></i> 결과
                                         </a>
                                         {% endif %}
-                                        <button class="btn btn-sm btn-outline-primary candidate-manage-btn" data-id="{{ c.id }}" data-name="{{ c.name }}">
-                                            <i class="fas fa-cog"></i> 문제 세트 관리
-                                        </button>
+
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -474,11 +478,11 @@
         <form id="randomConfigForm" class="row g-2 align-items-center">
           <div class="col-auto">
             <label for="javaCountInput" class="form-label mb-0">JAVA 객관식</label>
-            <input type="number" id="javaCountInput" class="form-control" min="1" value="10" style="width:80px;">
+            <input type="number" id="javaCountInput" name="java_count" class="form-control" min="1" value="10" style="width:80px;">
           </div>
           <div class="col-auto">
             <label for="dbCountInput" class="form-label mb-0">DB 객관식</label>
-            <input type="number" id="dbCountInput" class="form-control" min="1" value="3" style="width:80px;">
+            <input type="number" id="dbCountInput" name="db_count" class="form-control" min="1" value="3" style="width:80px;">
           </div>
           <div class="col-auto">
             <button type="submit" class="btn btn-primary">저장</button>
@@ -552,36 +556,7 @@
   </div>
 </div>
 
-<!-- ========================= -->
-<!-- 지원자별 문제 세트 관리 모달 -->
-<!-- ========================= -->
-<div class="modal fade" id="candidateQuestionsModal" tabindex="-1" aria-labelledby="candidateQuestionsModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="candidateQuestionsModalLabel">지원자별 문제 세트 관리</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <strong>지원자:</strong> <span id="modalCandidateName"></span>
-        </div>
-        <div class="mb-3">
-          <button class="btn btn-outline-primary btn-sm" id="randomizeQuestionsBtn">문제 재랜덤</button>
-          <button class="btn btn-success btn-sm" id="saveCandidateQuestionsBtn">저장</button>
-        </div>
-        <div class="question-list border rounded p-2" style="max-height:400px; overflow-y:auto; background:#f8f9fa;">
-          <form id="candidateQuestionsForm">
-            <input type="hidden" name="candidate_id" id="modalCandidateId">
-            <div id="candidateQuestionsContainer">
-              <!-- JS로 문제 체크박스 렌더링 -->
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- OpenAI API Key 설정 모달 -->
 <div class="modal fade" id="openaiKeyModal" tabindex="-1">
@@ -731,7 +706,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(result => {
             if (result.success) {
                 alert('부서가 추가되었습니다.');
-                window.location.reload();
+                // 폼 초기화
+                this.querySelector('input[name="name"]').value = '';
+                // 부서 목록 업데이트
+                updateDepartmentList();
             } else {
                 alert('추가 실패: ' + result.message);
             }
@@ -741,73 +719,82 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 부서 삭제 기능
-    document.querySelectorAll('.delete-department-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const departmentId = this.dataset.id;
-            const departmentName = this.parentElement.innerText.replace('삭제', '').trim();
-
-            if (confirm(`'${departmentName}' 부서를 정말로 삭제하시겠습니까? 해당 부서에 속한 문제들은 '미지정' 상태가 됩니다.`)) {
-                fetch(`/admin/departments/delete/${departmentId}`, {
-                    method: 'DELETE',
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        alert('부서가 삭제되었습니다.');
-                        window.location.reload();
-                    } else {
-                        alert('삭제 실패: ' + result.message);
-                    }
-                }).catch(error => {
-                    console.error('Error:', error);
-                    alert('삭제 중 오류가 발생했습니다.');
+    // 부서 목록 업데이트 함수
+    function updateDepartmentList() {
+        fetch('/api/departments')
+            .then(response => response.json())
+            .then(departments => {
+                const tbody = document.querySelector('#addDepartmentForm').closest('.card-body').querySelector('table tbody');
+                tbody.innerHTML = '';
+                
+                departments.forEach((dept, index) => {
+                    const row = `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${dept.name}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary assign-questions-btn" data-id="${dept.id}" data-name="${dept.name}">문제할당</button>
+                                <button class="btn btn-sm btn-outline-danger delete-department-btn" data-id="${dept.id}">삭제</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
                 });
-            }
-        });
-    });
+                
+                // 새로 추가된 삭제 버튼에 이벤트 리스너 다시 연결
+                attachDeleteDepartmentListeners();
+                // 새로 추가된 문제할당 버튼에 이벤트 리스너 다시 연결
+                attachAssignQuestionsListeners();
+            })
+            .catch(error => {
+                console.error('부서 목록 업데이트 실패:', error);
+            });
+    }
 
-    // 문제 할당 모달 이벤트
-    document.querySelectorAll('.assign-questions-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const departmentId = this.dataset.id;
-            const departmentName = this.dataset.name;
-            document.getElementById('assignDeptId').value = departmentId;
-            document.getElementById('assignDeptName').innerText = departmentName;
-            document.getElementById('filterDepartment').value = '';
-            document.getElementById('filterType').value = '';
-            document.getElementById('filterCategory').value = '';
-            document.getElementById('selectAllQuestions').click();
-            new bootstrap.Modal(document.getElementById('assignQuestionsModal')).show();
-        });
-    });
+    // 부서 삭제 이벤트 리스너 연결 함수
+    function attachDeleteDepartmentListeners() {
+        document.querySelectorAll('.delete-department-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const departmentId = this.dataset.id;
+                const departmentName = this.parentElement.innerText.replace('삭제', '').trim();
 
-    // 문제 할당 폼 제출
-    document.getElementById('assignQuestionsForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData.entries());
-        const departmentId = data.department_id;
-
-        fetch(`/admin/departments/assign_questions`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                alert('문제가 성공적으로 할당되었습니다.');
-                new bootstrap.Modal(document.getElementById('assignQuestionsModal')).hide();
-                window.location.reload();
-            } else {
-                alert('문제 할당 실패: ' + result.message);
-            }
-        }).catch(error => {
-            console.error('Error:', error);
-            alert('문제 할당 중 오류가 발생했습니다.');
+                if (confirm(`'${departmentName}' 부서를 정말로 삭제하시겠습니까? 해당 부서에 속한 문제들은 '미지정' 상태가 됩니다.`)) {
+                    fetch(`/admin/departments/delete/${departmentId}`, {
+                        method: 'DELETE',
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            alert('부서가 삭제되었습니다.');
+                            updateDepartmentList();
+                        } else {
+                            alert('삭제 실패: ' + result.message);
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                        alert('삭제 중 오류가 발생했습니다.');
+                    });
+                }
+            });
         });
-    });
+    }
+
+    // 문제할당 버튼 이벤트 리스너 연결 함수
+    function attachAssignQuestionsListeners() {
+        document.querySelectorAll('.assign-questions-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const departmentId = this.dataset.id;
+                const departmentName = this.dataset.name;
+                document.getElementById('assignDeptId').value = departmentId;
+                document.getElementById('assignDeptName').innerText = departmentName;
+                document.getElementById('filterDepartment').value = '';
+                document.getElementById('filterType').value = '';
+                document.getElementById('filterCategory').value = '';
+                document.getElementById('selectAllQuestions').click();
+                new bootstrap.Modal(document.getElementById('assignQuestionsModal')).show();
+            });
+        });
+    }
 
     // =========================
     // 문제할당 모달 문제 렌더링
@@ -880,72 +867,35 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('assignQuestionsForm').submit();
     });
 
-    // 지원자 목록에 버튼 추가 (예시: .candidate-manage-btn 클래스)
-    document.querySelectorAll('.candidate-manage-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const candidateId = this.dataset.id;
-            const candidateName = this.dataset.name;
-            document.getElementById('modalCandidateId').value = candidateId;
-            document.getElementById('modalCandidateName').innerText = candidateName;
-            // 문제 세트 불러오기
-            fetch(`/api/candidate/${candidateId}/questions`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        renderCandidateQuestions(data.selected_questions);
-                    } else {
-                        alert('문제 세트 조회 실패: ' + data.message);
-                    }
-                });
-            new bootstrap.Modal(document.getElementById('candidateQuestionsModal')).show();
-        });
-    });
-    // 문제 재랜덤 버튼
-    document.getElementById('randomizeQuestionsBtn').addEventListener('click', function() {
-        const candidateId = document.getElementById('modalCandidateId').value;
-        fetch(`/api/candidate/${candidateId}/questions/randomize`, {method: 'POST'})
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    renderCandidateQuestions(data.selected_questions);
-                } else {
-                    alert('랜덤 출제 실패: ' + data.message);
-                }
-            });
-    });
-    // 문제 세트 저장 버튼
-    document.getElementById('saveCandidateQuestionsBtn').addEventListener('click', function() {
-        const candidateId = document.getElementById('modalCandidateId').value;
-        const checked = Array.from(document.querySelectorAll('#candidateQuestionsContainer input[type="checkbox"]:checked')).map(cb => cb.value);
-        fetch(`/api/candidate/${candidateId}/questions/update`, {
+    // 문제 할당 폼 제출
+    document.getElementById('assignQuestionsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        const departmentId = data.department_id;
+
+        fetch(`/admin/departments/assign_questions`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({question_ids: checked})
+            body: JSON.stringify(data)
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('문제 세트가 저장되었습니다.');
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('문제가 성공적으로 할당되었습니다.');
+                new bootstrap.Modal(document.getElementById('assignQuestionsModal')).hide();
+                // 부서 목록 업데이트
+                updateDepartmentList();
             } else {
-                alert('저장 실패: ' + data.message);
+                alert('문제 할당 실패: ' + result.message);
             }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('문제 할당 중 오류가 발생했습니다.');
         });
     });
-    // 문제 세트 렌더링 함수
-    function renderCandidateQuestions(selectedIds) {
-        // allQuestions는 기존에 백엔드에서 전달된 전체 문제 데이터
-        let html = '';
-        allQuestions.forEach(q => {
-            const checked = selectedIds.includes(q.id) ? 'checked' : '';
-            html += `<div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" value="${q.id}" id="candq_${q.id}" ${checked}>
-                <label class="form-check-label" for="candq_${q.id}">
-                    [${q.category}] [${q.type}] [${q.difficulty}] ${q.question}
-                </label>
-            </div>`;
-        });
-        document.getElementById('candidateQuestionsContainer').innerHTML = html;
-    }
+
+
 
     // 랜덤 출제 개수 설정 불러오기
     fetch('/api/random_config')
@@ -957,21 +907,43 @@ document.addEventListener('DOMContentLoaded', function() {
     // 저장 이벤트
     document.getElementById('randomConfigForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const javaCount = document.getElementById('javaCountInput').value;
-        const dbCount = document.getElementById('dbCountInput').value;
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+        
         fetch('/api/random_config', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({java_count: javaCount, db_count: dbCount})
+            body: JSON.stringify({
+                java_count: parseInt(data.java_count),
+                db_count: parseInt(data.db_count)
+            })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                // 성공 팝업 표시
+                alert('랜덤 출제 설정이 성공적으로 저장되었습니다!');
                 document.getElementById('randomConfigMsg').innerText = '저장되었습니다!';
+                document.getElementById('randomConfigMsg').className = 'col-auto text-success';
             } else {
+                alert('저장 실패: ' + (data.message || '알 수 없는 오류가 발생했습니다.'));
                 document.getElementById('randomConfigMsg').innerText = '저장 실패';
+                document.getElementById('randomConfigMsg').className = 'col-auto text-danger';
             }
-            setTimeout(() => { document.getElementById('randomConfigMsg').innerText = ''; }, 2000);
+            setTimeout(() => { 
+                document.getElementById('randomConfigMsg').innerText = ''; 
+                document.getElementById('randomConfigMsg').className = 'col-auto';
+            }, 2000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('저장 중 오류가 발생했습니다: ' + error.message);
+            document.getElementById('randomConfigMsg').innerText = '저장 중 오류가 발생했습니다.';
+            document.getElementById('randomConfigMsg').className = 'col-auto text-danger';
+            setTimeout(() => { 
+                document.getElementById('randomConfigMsg').innerText = ''; 
+                document.getElementById('randomConfigMsg').className = 'col-auto';
+            }, 2000);
         });
     });
 
