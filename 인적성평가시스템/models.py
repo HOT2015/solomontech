@@ -118,7 +118,8 @@ class TestResult:
         self.test_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.answers = {}  # 문제ID: 답안
         self.scores = {
-            "technical": 0
+            "technical": 0,
+            "problem_solving": 0  # 문제해결력 점수 추가
         }
         self.total_score = 0
         self.rank = 0
@@ -130,6 +131,7 @@ class TestResult:
     def calculate_score(self, questions: List[Question]):
         """점수 계산"""
         technical_score = 0
+        problem_solving_score = 0
         
         for question in questions:
             if question.id in self.answers:
@@ -137,9 +139,12 @@ class TestResult:
                 if question.is_correct(answer):
                     if question.category in ["Java", "Database"]:
                         technical_score += question.points
+                    elif question.category == "문제해결":
+                        problem_solving_score += question.points
         
         self.scores["technical"] = technical_score
-        self.total_score = technical_score
+        self.scores["problem_solving"] = problem_solving_score
+        self.total_score = technical_score + problem_solving_score
     
     def to_dict(self) -> Dict:
         """결과를 딕셔너리로 변환"""
@@ -159,6 +164,9 @@ class TestResult:
         result.test_date = data["test_date"]
         result.answers = data["answers"]
         result.scores = data["scores"]
+        # 기존 데이터에 problem_solving 키가 없는 경우 추가
+        if "problem_solving" not in result.scores:
+            result.scores["problem_solving"] = 0
         result.total_score = data["total_score"]
         result.rank = data["rank"]
         return result
@@ -245,13 +253,16 @@ class DataManager:
         return [TestResult.from_dict(data) for data in results]
     
     def load_questions(self) -> List[Question]:
-        """문제 데이터 로드"""
+        """문제 데이터 로드 (기술 문제 + 문제해결 문제)"""
         try:
             with open(self.questions_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            # 기술 문제만 로드
-            all_questions_data = data.get("technical_questions", [])
+            # 기술 문제와 문제해결 문제 모두 로드
+            technical_questions_data = data.get("technical_questions", [])
+            problem_solving_questions_data = data.get("problem_solving_questions", [])
+            
+            all_questions_data = technical_questions_data + problem_solving_questions_data
             
             return [Question(q) for q in all_questions_data]
         except (FileNotFoundError, json.JSONDecodeError):
@@ -376,6 +387,20 @@ class DataManager:
         self.save_all_questions(questions)
 
     def save_all_questions(self, questions: List[Question]):
-        """모든 문제 정보를 파일에 저장"""
-        question_data = {"technical_questions": [q.to_dict() for q in questions]}
+        """모든 문제 정보를 파일에 저장 (기술 문제 + 문제해결 문제)"""
+        # 기존 데이터 로드
+        try:
+            with open(self.questions_file, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            existing_data = {"technical_questions": [], "problem_solving_questions": []}
+        
+        # 카테고리별로 분류
+        technical_questions = [q.to_dict() for q in questions if q.category in ["Java", "Database"]]
+        problem_solving_questions = [q.to_dict() for q in questions if q.category == "문제해결"]
+        
+        question_data = {
+            "technical_questions": technical_questions,
+            "problem_solving_questions": problem_solving_questions
+        }
         self._save_json(self.questions_file, question_data) 

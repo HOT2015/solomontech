@@ -1,5 +1,20 @@
 [
   {
+    "candidate_id": "2a793489-2e66-44b7-bc32-c81d4762fce2",
+    "test_date": "2025-07-05 21:55:28",
+    "answers": {
+      "tech_3": "SELECT",
+      "tech_19": "&",
+      "java_mc_2": "인스턴스화할 수 없다.",
+      "java_mc_4": "오버로딩은 상속 관계에서만 발생한다."
+    },
+    "scores": {
+      "technical": 10
+    },
+    "total_score": 10,
+    "rank": 1
+  },
+  {
     "candidate_id": "44fb912b-d005-4e21-90ea-b89305f7d8f1",
     "test_date": "2025-06-30 23:50:15",
     "answers": {
@@ -11,6 +26,6 @@
       "technical": 0
     },
     "total_score": 0,
-    "rank": 1
+    "rank": 2
   }
 ]

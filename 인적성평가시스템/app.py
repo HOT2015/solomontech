@@ -83,10 +83,6 @@ def register():
         name = request.form.get('name')
         email = request.form.get('email')
         phone = request.form.get('phone')
-        department_id = request.form.get('department_id')
-        if not department_id:
-            departments = data_manager.load_departments()
-            return render_template('register.html', error='부서를 반드시 선택해야 합니다.', departments=departments)
         if name and email and phone:
             candidates = data_manager.get_all_candidates()
             matched = None
@@ -95,18 +91,15 @@ def register():
                     matched = candidate
                     break
             if not matched:
-                departments = data_manager.load_departments()
-                return render_template('register.html', error="사전에 등록된 이름이 아닙니다. 관리자에게 문의하세요.", departments=departments)
+                return render_template('register.html', error="사전에 등록된 이름이 아닙니다. 관리자에게 문의하세요.")
             today = datetime.now().strftime('%Y-%m-%d')
             if not hasattr(matched, 'access_date') or not matched.access_date:
-                departments = data_manager.load_departments()
-                return render_template('register.html', error="접속 가능 날짜가 설정되지 않았습니다. 관리자에게 문의하세요.", departments=departments)
+                return render_template('register.html', error="접속 가능 날짜가 설정되지 않았습니다. 관리자에게 문의하세요.")
             if matched.access_date != today:
-                departments = data_manager.load_departments()
-                return render_template('register.html', error=f"오늘({today})은 접속 가능 날짜가 아닙니다. (응시 가능일: {matched.access_date})", departments=departments)
+                return render_template('register.html', error=f"오늘({today})은 접속 가능 날짜가 아닙니다. (응시 가능일: {matched.access_date})")
             # 부서 미지정 지원자라면 기본 부서 할당
             if not matched.department_id:
-                matched.department_id = department_id or 'dept_1'
+                matched.department_id = 'dept_1'
                 data_manager.update_candidate(matched)
             # 세션에 지원자 정보 저장
             session['candidate_id'] = matched.id
@@ -117,10 +110,8 @@ def register():
             data_manager.update_candidate_contact_info(matched.id, email, phone)
             return redirect(url_for('test_start'))
         else:
-            departments = data_manager.load_departments()
-            return render_template('register.html', error="이름, 이메일, 핸드폰번호를 모두 입력해주세요.", departments=departments)
-    departments = data_manager.load_departments()
-    return render_template('register.html', departments=departments)
+            return render_template('register.html', error="이름, 이메일, 핸드폰번호를 모두 입력해주세요.")
+    return render_template('register.html')
 
 @app.route('/test/start')
 def test_start():
@@ -534,10 +525,18 @@ def admin_answer_detail(candidate_id):
     result = data_manager.get_result(candidate_id)
     if not candidate or not result:
         return redirect(url_for('admin'))
-    # 지원자에게 출제된 문제만 불러오기
+    
+    # 모든 문제 로드 (기술 + 문제해결)
     all_questions = data_manager.load_questions()
+    
+    # 지원자에게 출제된 문제가 있으면 해당 문제만, 없으면 모든 문제 사용
     selected_ids = getattr(candidate, 'selected_questions', [])
-    selected_questions = [q for q in all_questions if q.id in selected_ids]
+    if selected_ids:
+        selected_questions = [q for q in all_questions if q.id in selected_ids]
+    else:
+        # 선택된 문제가 없으면 모든 문제 사용
+        selected_questions = all_questions
+    
     # 답변 매핑 - 출제된 문제에 대해서만 처리
     answers = []
     for question in selected_questions:
@@ -556,6 +555,7 @@ def admin_answer_detail(candidate_id):
                 'is_correct': False,
                 'answered': False
             })
+    
     return render_template('admin_answer_detail.html', candidate=candidate, result=result, answers=answers)
 
 @app.route('/admin/candidate/add', methods=['POST'])
