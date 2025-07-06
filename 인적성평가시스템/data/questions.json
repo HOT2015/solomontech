@@ -6,15 +6,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "SQL에서 데이터를 조회할 때 사용하는 명령어는?",
+      "points": 10,
+      "department_ids": [
+        "dept_5aafbf07-65dc-4967-9c04-822dd460c8ef"
+      ],
       "options": [
         "SELECT",
         "GET",
         "FETCH",
         "RETRIEVE"
       ],
-      "correct_answer": "SELECT",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "SELECT"
     },
     {
       "id": "tech_4",
@@ -22,15 +24,18 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "SQL에서 데이터를 삽입할 때 사용하는 명령어는?",
+      "points": 10,
+      "department_ids": [
+        "dept_90d93f2e-3564-459e-b625-ee80cfb443f6",
+        "dept_1"
+      ],
       "options": [
         "INSERT",
         "ADD",
         "CREATE",
         "PUT"
       ],
-      "correct_answer": "INSERT",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "INSERT"
     },
     {
       "id": "tech_5",
@@ -38,15 +43,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "SQL에서 두 테이블을 연결할 때 사용하는 절은?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "JOIN",
         "CONNECT",
         "LINK",
         "MERGE"
       ],
-      "correct_answer": "JOIN",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "JOIN"
     },
     {
       "id": "tech_6",
@@ -54,7 +61,10 @@
       "type": "주관식",
       "difficulty": "초급",
       "question": "Java에서 1부터 10까지의 숫자를 출력하는 for문을 작성하세요.",
-      "correct_answer": "for(int i=1; i<=10; i++)",
+      "points": 20,
+      "department_ids": [
+        "dept_1"
+      ],
       "keywords": [
         "for",
         "int",
@@ -63,8 +73,7 @@
         "10",
         "++"
       ],
-      "points": 20,
-      "department_id": "dept_2"
+      "correct_answer": "for(int i=1; i<=10; i++)"
     },
     {
       "id": "tech_7",
@@ -72,15 +81,17 @@
       "type": "주관식",
       "difficulty": "중급",
       "question": "Java에서 문자열 'Hello'를 출력하는 코드를 작성하세요.",
-      "correct_answer": "System.out.println('Hello')",
+      "points": 20,
+      "department_ids": [
+        "dept_1"
+      ],
       "keywords": [
         "System",
         "out",
         "println",
         "Hello"
       ],
-      "points": 20,
-      "department_id": "dept_1"
+      "correct_answer": "System.out.println('Hello')"
     },
     {
       "id": "tech_8",
@@ -88,15 +99,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "Java에서 배열을 선언하는 올바른 방법은?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "int[] arr = new int[5]",
         "int arr[] = new int[5]",
         "array arr = new array[5]",
         "int arr = [1,2,3,4,5]"
       ],
-      "correct_answer": "int[] arr = new int[5]",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "int[] arr = new int[5]"
     },
     {
       "id": "tech_9",
@@ -104,15 +117,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "Java에서 인터페이스를 구현할 때 사용하는 키워드는?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "extends",
         "implements",
         "interface",
         "abstract"
       ],
-      "correct_answer": "implements",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "implements"
     },
     {
       "id": "tech_10",
@@ -120,15 +135,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "Java에서 메서드를 정의할 때 반환 타입이 없을 경우 사용하는 키워드는?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "void",
         "null",
         "empty",
         "none"
       ],
-      "correct_answer": "void",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "void"
     },
     {
       "id": "tech_11",
@@ -136,15 +153,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "SQL에서 데이터를 수정할 때 사용하는 명령어는?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "UPDATE",
         "MODIFY",
         "CHANGE",
         "EDIT"
       ],
-      "correct_answer": "UPDATE",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "UPDATE"
     },
     {
       "id": "tech_12",
@@ -152,15 +171,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "SQL에서 데이터를 삭제할 때 사용하는 명령어는?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "DELETE",
         "REMOVE",
         "DROP",
         "CLEAR"
       ],
-      "correct_answer": "DELETE",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "DELETE"
     },
     {
       "id": "tech_13",
@@ -168,15 +189,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "SQL에서 중복된 데이터를 제거할 때 사용하는 키워드는?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "DISTINCT",
         "UNIQUE",
         "DIFFERENT",
         "SINGLE"
       ],
-      "correct_answer": "DISTINCT",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "DISTINCT"
     },
     {
       "id": "tech_14",
@@ -184,15 +207,17 @@
       "type": "주관식",
       "difficulty": "초급",
       "question": "Java에서 정수형 변수 a에 10을 할당하는 코드를 작성하세요.",
-      "correct_answer": "int a = 10",
+      "points": 20,
+      "department_ids": [
+        "dept_1"
+      ],
       "keywords": [
         "int",
         "a",
         "=",
         "10"
       ],
-      "points": 20,
-      "department_id": "dept_2"
+      "correct_answer": "int a = 10"
     },
     {
       "id": "tech_15",
@@ -200,7 +225,10 @@
       "type": "주관식",
       "difficulty": "중급",
       "question": "Java에서 if문을 사용하여 변수 x가 0보다 크면 'positive'를 출력하는 코드를 작성하세요.",
-      "correct_answer": "if(x > 0) System.out.println('positive')",
+      "points": 20,
+      "department_ids": [
+        "dept_1"
+      ],
       "keywords": [
         "if",
         "x",
@@ -211,8 +239,7 @@
         "println",
         "positive"
       ],
-      "points": 20,
-      "department_id": "dept_1"
+      "correct_answer": "if(x > 0) System.out.println('positive')"
     },
     {
       "id": "tech_16",
@@ -220,15 +247,17 @@
       "type": "주관식",
       "difficulty": "초급",
       "question": "SQL에서 'users' 테이블의 모든 데이터를 조회하는 쿼리를 작성하세요.",
-      "correct_answer": "SELECT * FROM users",
+      "points": 20,
+      "department_ids": [
+        "dept_1"
+      ],
       "keywords": [
         "SELECT",
         "*",
         "FROM",
         "users"
       ],
-      "points": 20,
-      "department_id": "dept_2"
+      "correct_answer": "SELECT * FROM users"
     },
     {
       "id": "tech_17",
@@ -236,7 +265,10 @@
       "type": "주관식",
       "difficulty": "중급",
       "question": "SQL에서 'employees' 테이블에서 salary가 50000 이상인 직원을 조회하는 쿼리를 작성하세요.",
-      "correct_answer": "SELECT * FROM employees WHERE salary >= 50000",
+      "points": 20,
+      "department_ids": [
+        "dept_1"
+      ],
       "keywords": [
         "SELECT",
         "*",
@@ -247,8 +279,7 @@
         ">=",
         "50000"
       ],
-      "points": 20,
-      "department_id": "dept_1"
+      "correct_answer": "SELECT * FROM employees WHERE salary >= 50000"
     },
     {
       "id": "tech_18",
@@ -256,15 +287,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "Java에서 예외를 처리할 때 사용하는 키워드는?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "try-catch",
         "if-else",
         "switch-case",
         "for-while"
       ],
-      "correct_answer": "try-catch",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "try-catch"
     },
     {
       "id": "tech_19",
@@ -272,15 +305,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "Java에서 문자열을 연결할 때 사용하는 연산자는?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "+",
         "&",
         ".",
         "||"
       ],
-      "correct_answer": "+",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "+"
     },
     {
       "id": "tech_20",
@@ -288,24 +323,28 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "SQL에서 데이터를 정렬할 때 사용하는 절은?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "ORDER BY",
         "SORT BY",
         "ARRANGE BY",
         "GROUP BY"
       ],
-      "correct_answer": "ORDER BY",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "ORDER BY"
     },
     {
       "id": "java_mc_2",
-      "department_id": "dept_1",
       "category": "Java",
       "type": "객관식",
       "difficulty": "중",
       "question": "추상 클래스와 인터페이스의 공통점이 아닌 것은?",
       "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "인스턴스화할 수 없다.",
         "다중 상속을 지원한다.",
@@ -316,12 +355,14 @@
     },
     {
       "id": "java_mc_4",
-      "department_id": "dept_1",
       "category": "Java",
       "type": "객관식",
       "difficulty": "중",
       "question": "오버로딩(Overloading)과 오버라이딩(Overriding)에 대한 설명으로 옳은 것은?",
       "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "오버로딩은 매개변수 타입과 개수가 같아야 한다.",
         "오버라이딩은 리턴 타입이 달라도 된다.",
@@ -332,12 +373,14 @@
     },
     {
       "id": "db_mc_2",
-      "department_id": "dept_2",
       "category": "Database",
       "type": "객관식",
       "difficulty": "중",
       "question": "SQL의 JOIN 유형 중, 두 테이블 간의 공통된 값이 없는 행도 모두 포함하여 결과를 반환하는 것은?",
       "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "INNER JOIN",
         "LEFT JOIN",
@@ -348,12 +391,14 @@
     },
     {
       "id": "db_mc_3",
-      "department_id": "dept_1",
       "category": "Database",
       "type": "객관식",
       "difficulty": "상",
       "question": "데이터베이스 트랜잭션이 가져야 할 ACID 속성이 아닌 것은?",
       "points": 15,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "원자성(Atomicity)",
         "일관성(Consistency)",
@@ -368,15 +413,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "Java 객관식 샘플 1",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "A",
         "B",
         "C",
         "D"
       ],
-      "correct_answer": "A",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "A"
     },
     {
       "id": "java_mc_102",
@@ -384,15 +431,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "Java 객관식 샘플 2",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
       "options": [
         "A",
         "B",
         "C",
         "D"
       ],
-      "correct_answer": "B",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "B"
     },
     {
       "id": "java_mc_130",
@@ -400,15 +449,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "Java 객관식 샘플 30",
+      "points": 10,
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "A",
         "B",
         "C",
         "D"
       ],
-      "correct_answer": "D",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "D"
     },
     {
       "id": "java_sub_101",
@@ -416,13 +467,15 @@
       "type": "주관식",
       "difficulty": "초급",
       "question": "Java 주관식 샘플 1",
+      "points": 20,
+      "department_ids": [
+        "dept_2"
+      ],
       "keywords": [
         "키워드1",
         "키워드2"
       ],
-      "correct_answer": "정답 예시 1",
-      "points": 20,
-      "department_id": "dept_1"
+      "correct_answer": "정답 예시 1"
     },
     {
       "id": "java_sub_110",
@@ -430,13 +483,15 @@
       "type": "주관식",
       "difficulty": "중급",
       "question": "Java 주관식 샘플 10",
+      "points": 20,
+      "department_ids": [
+        "dept_1"
+      ],
       "keywords": [
         "키워드1",
         "키워드2"
       ],
-      "correct_answer": "정답 예시 10",
-      "points": 20,
-      "department_id": "dept_2"
+      "correct_answer": "정답 예시 10"
     },
     {
       "id": "db_mc_101",
@@ -444,15 +499,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "DB 객관식 샘플 1",
+      "points": 10,
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "A",
         "B",
         "C",
         "D"
       ],
-      "correct_answer": "A",
-      "points": 10,
-      "department_id": "dept_1"
+      "correct_answer": "A"
     },
     {
       "id": "db_mc_120",
@@ -460,15 +517,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "DB 객관식 샘플 20",
+      "points": 10,
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "A",
         "B",
         "C",
         "D"
       ],
-      "correct_answer": "D",
-      "points": 10,
-      "department_id": "dept_2"
+      "correct_answer": "D"
     },
     {
       "id": "db_sub_101",
@@ -476,13 +535,15 @@
       "type": "주관식",
       "difficulty": "초급",
       "question": "DB 주관식 샘플 1",
+      "points": 20,
+      "department_ids": [
+        "dept_2"
+      ],
       "keywords": [
         "키워드1",
         "키워드2"
       ],
-      "correct_answer": "정답 예시 1",
-      "points": 20,
-      "department_id": "dept_1"
+      "correct_answer": "정답 예시 1"
     },
     {
       "id": "db_sub_110",
@@ -490,13 +551,15 @@
       "type": "주관식",
       "difficulty": "중급",
       "question": "DB 주관식 샘플 10",
+      "points": 20,
+      "department_ids": [
+        "dept_2"
+      ],
       "keywords": [
         "키워드1",
         "키워드2"
       ],
-      "correct_answer": "정답 예시 10",
-      "points": 20,
-      "department_id": "dept_2"
+      "correct_answer": "정답 예시 10"
     },
     {
       "id": "tech_32",
@@ -505,6 +568,9 @@
       "difficulty": "초급",
       "question": "테스트문제 12",
       "points": 10,
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "선택1",
         "선택2",
@@ -520,7 +586,9 @@
       "difficulty": "초급",
       "question": "캐피탈 주관식",
       "points": 20,
-      "department_id": "dept_2",
+      "department_ids": [
+        "dept_2"
+      ],
       "keywords": [
         "파티",
         "식이"
@@ -535,15 +603,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "프로젝트 일정이 지연되었을 때 가장 우선적으로 해야 할 일은?",
+      "points": 15,
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "팀원들에게 야근을 요청한다",
         "일정을 재조정하고 우선순위를 정한다",
         "고객에게 일정 연기를 요청한다",
         "기존 기능을 줄여서라도 일정을 맞춘다"
       ],
-      "correct_answer": "일정을 재조정하고 우선순위를 정한다",
-      "points": 15,
-      "department_id": "dept_1"
+      "correct_answer": "일정을 재조정하고 우선순위를 정한다"
     },
     {
       "id": "ps_2",
@@ -551,16 +621,17 @@
       "type": "객관식",
       "difficulty": "중급",
       "question": "팀원 간 의견 충돌이 발생했을 때 해결 방법으로 가장 적절한 것은?",
-      "objective_answer": "각자의 의견을 듣고 합의점을 찾는다",
+      "points": 15,
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "상급자의 결정을 기다린다",
         "각자의 의견을 듣고 합의점을 찾는다",
         "다수결로 결정한다",
         "기존 방식을 그대로 유지한다"
       ],
-      "correct_answer": "각자의 의견을 듣고 합의점을 찾는다",
-      "points": 15,
-      "department_id": "dept_2"
+      "correct_answer": "각자의 의견을 듣고 합의점을 찾는다"
     },
     {
       "id": "ps_3",
@@ -568,15 +639,17 @@
       "type": "객관식",
       "difficulty": "초급",
       "question": "새로운 기술을 도입할 때 고려해야 할 가장 중요한 요소는?",
+      "points": 15,
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "기술의 최신성",
         "팀의 학습 능력과 프로젝트 일정",
         "라이선스 비용",
         "기술의 인기도"
       ],
-      "correct_answer": "팀의 학습 능력과 프로젝트 일정",
-      "points": 15,
-      "department_id": "dept_1"
+      "correct_answer": "팀의 학습 능력과 프로젝트 일정"
     },
     {
       "id": "ps_4",
@@ -585,7 +658,9 @@
       "difficulty": "초급",
       "question": "당나귀",
       "points": 10,
-      "department_id": "dept_1",
+      "department_ids": [
+        "dept_2"
+      ],
       "options": [
         "12",
         "2",

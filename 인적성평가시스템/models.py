@@ -77,7 +77,14 @@ class Question:
         self.correct_answer = question_data["correct_answer"]
         self.keywords = question_data.get("keywords", [])
         self.points = question_data["points"]
-        self.department_id = question_data.get("department_id") # 부서 ID 추가
+        # 부서 ID를 리스트로 관리 (여러 부서 할당 가능)
+        if "department_ids" in question_data:
+            self.department_ids = question_data["department_ids"]
+        elif "department_id" in question_data and question_data["department_id"]:
+            # 기존 단일 department_id를 리스트로 변환
+            self.department_ids = [question_data["department_id"]]
+        else:
+            self.department_ids = []
     
     def is_correct(self, answer: str) -> bool:
         """답안이 정답인지 확인"""
@@ -100,7 +107,7 @@ class Question:
             "difficulty": self.difficulty,
             "question": self.question,
             "points": self.points,
-            "department_id": self.department_id,
+            "department_ids": self.department_ids,
         }
         if self.type == "객관식":
             data["options"] = self.options
@@ -379,11 +386,11 @@ class DataManager:
         data = self._load_json(self.departments_file)
         data["departments"] = [d for d in data["departments"] if d["id"] != department_id]
         self._save_json(self.departments_file, data)
-        # 연관된 문제들의 department_id를 null로 업데이트
+        # 연관된 문제들의 department_ids에서 해당 부서 제거
         questions = self.load_questions()
         for q in questions:
-            if q.department_id == department_id:
-                q.department_id = None
+            if department_id in q.department_ids:
+                q.department_ids.remove(department_id)
         self.save_all_questions(questions)
 
     def save_all_questions(self, questions: List[Question]):

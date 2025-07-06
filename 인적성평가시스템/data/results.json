@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "candidate_id": "7a46c9a1-c3d9-473e-98ff-45b85d5f687b",
+    "test_date": "2025-07-06 11:26:23",
+    "answers": {
+      "tech_11": "MODIFY",
+      "tech_12": "CLEAR",
+      "java_mc_2": "메서드를 가질 수 있다.",
+      "db_mc_2": "LEFT JOIN",
+      "java_mc_102": "B"
+    },
+    "scores": {
+      "technical": 10,
+      "problem_solving": 0
+    },
+    "total_score": 10,
+    "rank": 1
+  }
+]

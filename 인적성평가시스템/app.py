@@ -134,17 +134,33 @@ def test_start():
     # 지원자에게 할당된 문제가 없는 경우에만 새로 할당
     if not candidate.selected_questions:
         all_questions = data_manager.load_questions()
-        department_questions = [q for q in all_questions if q.department_id == candidate.department_id]
-        java_objective = [q for q in department_questions if q.category == 'Java' and q.type == '객관식']
-        db_objective = [q for q in department_questions if q.category == 'Database' and q.type == '객관식']
+        department_questions = [q for q in all_questions if candidate.department_id in q.department_ids]
+        
+        # 카테고리별 문제 분류
+        java_mc = [q for q in department_questions if q.category == 'Java' and q.type == '객관식']
+        java_sub = [q for q in department_questions if q.category == 'Java' and q.type == '주관식']
+        db_mc = [q for q in department_questions if q.category == 'Database' and q.type == '객관식']
+        db_sub = [q for q in department_questions if q.category == 'Database' and q.type == '주관식']
+        ps_mc = [q for q in department_questions if q.category == '문제해결' and q.type == '객관식']
+        
         # 출제 개수 설정값 적용
         random_config = load_random_config()
-        java_count = random_config.get('java_count', 10)
-        db_count = random_config.get('db_count', 3)
+        java_mc_count = random_config.get('java_mc_count', 2)
+        java_sub_count = random_config.get('java_sub_count', 1)
+        db_mc_count = random_config.get('db_mc_count', 3)
+        db_sub_count = random_config.get('db_sub_count', 1)
+        ps_mc_count = random_config.get('ps_mc_count', 3)
+        
         import random
-        selected_java = random.sample(java_objective, min(len(java_objective), java_count))
-        selected_db = random.sample(db_objective, min(len(db_objective), db_count))
-        selected_ids = [q.id for q in selected_java] + [q.id for q in selected_db]
+        selected_java_mc = random.sample(java_mc, min(len(java_mc), java_mc_count))
+        selected_java_sub = random.sample(java_sub, min(len(java_sub), java_sub_count))
+        selected_db_mc = random.sample(db_mc, min(len(db_mc), db_mc_count))
+        selected_db_sub = random.sample(db_sub, min(len(db_sub), db_sub_count))
+        selected_ps_mc = random.sample(ps_mc, min(len(ps_mc), ps_mc_count))
+        
+        selected_ids = ([q.id for q in selected_java_mc] + [q.id for q in selected_java_sub] + 
+                       [q.id for q in selected_db_mc] + [q.id for q in selected_db_sub] + 
+                       [q.id for q in selected_ps_mc])
         candidate.selected_questions = selected_ids
         data_manager.update_candidate(candidate)
 
@@ -229,9 +245,18 @@ def admin():
     candidates = data_manager.get_all_candidates()
     results = data_manager.get_all_results()
     departments = data_manager.load_departments()
+    
+    # Department 객체들을 딕셔너리로 변환
+    departments_dict = [dept.to_dict() for dept in departments]
+    
+    # 모든 문제 로드 (기술 문제 + 문제해결 문제)
+    all_questions = []
     questions = data_manager.load_questions()
+    for q in questions:
+        all_questions.append(q.to_dict())
+    
     # 부서 미지정 문제 목록
-    unassigned_questions = [q for q in questions if not q.department_id]
+    unassigned_questions = [q for q in all_questions if not q.get('department_ids') or len(q.get('department_ids', [])) == 0]
     
     # 날짜 포맷 변경 (ISO -> YYYY-MM-DD HH:MM:SS) 및 None 체크
     for c in candidates:
@@ -256,7 +281,7 @@ def admin():
                 'result': result
             }
     
-    return render_template('admin.html', candidates=candidates, candidate_results=candidate_results, departments=departments, unassigned_questions=unassigned_questions, questions=[q.to_dict() for q in questions])
+    return render_template('admin.html', candidates=candidates, candidate_results=candidate_results, departments=departments_dict, unassigned_questions=unassigned_questions, questions=all_questions)
 
 @app.route('/admin/candidate/delete/<candidate_id>', methods=['DELETE'])
 def delete_candidate(candidate_id):
@@ -454,7 +479,10 @@ def api_questions():
         'difficulty': q.difficulty,
         'question': q.question,
         'options': q.options,
-        'points': q.points
+        'correct_answer': q.correct_answer,
+        'keywords': q.keywords,
+        'points': q.points,
+        'department_ids': getattr(q, 'department_ids', [])
     } for q in questions])
 
 @app.route('/api/departments')
@@ -710,28 +738,75 @@ def add_department():
         questions = data_manager.load_questions()
         for q in questions:
             if q.id in assign_questions:
-                q.department_id = department.id
+                if department.id not in q.department_ids:
+                    q.department_ids.append(department.id)
         data_manager.save_all_questions(questions)
     return jsonify(success=True, message="부서가 추가되었습니다.", department=department.to_dict())
 
 @app.route('/admin/departments/assign_questions', methods=['POST'])
 def assign_questions_to_department():
-    """특정 부서에 문제를 할당하는 API"""
+    """특정 부서에 문제를 할당/해제하는 API (여러 부서 할당 가능)"""
     data = request.get_json() if request.is_json else request.form
     department_id = data.get('department_id')
-    question_ids = data.get('question_ids')
-    if not department_id or not question_ids:
-        return jsonify(success=False, message="부서와 문제를 모두 선택해야 합니다."), 400
+    question_ids = data.get('question_ids', [])
+    filter_conditions = data.get('filter_conditions', {})  # 필터 조건 추가
+    
+    if not department_id:
+        return jsonify(success=False, message="부서를 선택해야 합니다."), 400
+    
+    # question_ids가 문자열인 경우 리스트로 변환
     if isinstance(question_ids, str):
         question_ids = [question_ids]
+    
     questions = data_manager.load_questions()
+    
+    # 필터 조건에 맞는 문제들만 처리
+    filtered_questions = []
     for q in questions:
+        # 부서 필터 로직
+        dept_match = True
+        if filter_conditions.get('department') == 'unassigned':
+            # 미지정 필터: 미지정 문제만
+            dept_match = (not q.department_ids or len(q.department_ids) == 0)
+        elif filter_conditions.get('department') == 'current':
+            # 현재 부서 필터: 해당 부서 문제만
+            dept_match = (q.department_ids and department_id in q.department_ids)
+        elif filter_conditions.get('department') and filter_conditions.get('department') not in ['all', 'current', 'unassigned']:
+            # 특정 부서 필터: 해당 부서 문제만
+            dept_match = (q.department_ids and filter_conditions.get('department') in q.department_ids)
+        
+        # 카테고리 필터
+        category_match = not filter_conditions.get('category') or q.category == filter_conditions.get('category')
+        
+        # 유형 필터
+        type_match = not filter_conditions.get('type') or q.type == filter_conditions.get('type')
+        
+        if dept_match and category_match and type_match:
+            filtered_questions.append(q)
+    
+    # 디버깅 로그
+    print(f"부서 ID: {department_id}")
+    print(f"선택된 문제 수: {len(question_ids)}")
+    print(f"필터 조건: {filter_conditions}")
+    print(f"필터링된 문제 수: {len(filtered_questions)}")
+    print(f"필터링된 문제 ID들: {[q.id for q in filtered_questions]}")
+    
+    # 필터링된 문제들만 처리
+    for q in filtered_questions:
+        # 현재 부서에 할당할 문제들
         if q.id in question_ids:
-            q.department_id = department_id
-        elif q.department_id == department_id and q.id not in question_ids:
-            q.department_id = None  # 할당 해제
+            # 해당 부서가 이미 할당되어 있지 않으면 추가
+            if department_id not in q.department_ids:
+                q.department_ids.append(department_id)
+                print(f"문제 {q.id}를 부서 {department_id}에 할당")
+        # 현재 부서에서 해제할 문제들 (question_ids에 없는 문제들)
+        elif department_id in q.department_ids and q.id not in question_ids:
+            # 해당 부서에서 제거
+            q.department_ids.remove(department_id)
+            print(f"문제 {q.id}를 부서 {department_id}에서 해제")
+    
     data_manager.save_all_questions(questions)
-    return jsonify(success=True, message="문제가 성공적으로 할당되었습니다.")
+    return jsonify(success=True, message="문제 할당이 성공적으로 업데이트되었습니다.")
 
 @app.route('/admin/departments/delete/<department_id>', methods=['DELETE'])
 def delete_department_route(department_id):
@@ -750,7 +825,7 @@ def unassign_question_department(question_id):
         found = False
         for q in questions:
             if q.id == question_id:
-                q.department_id = None
+                q.department_ids = []
                 found = True
                 break
         if found:
@@ -774,14 +849,25 @@ def set_random_config():
         if not data:
             return jsonify(success=False, message="데이터가 전송되지 않았습니다."), 400
         
-        java_count = int(data.get('java_count', 10))
-        db_count = int(data.get('db_count', 3))
+        # 새로운 카테고리별 설정값 가져오기
+        java_mc_count = int(data.get('java_mc_count', 2))
+        java_sub_count = int(data.get('java_sub_count', 1))
+        db_mc_count = int(data.get('db_mc_count', 3))
+        db_sub_count = int(data.get('db_sub_count', 1))
+        ps_mc_count = int(data.get('ps_mc_count', 3))
         
-        # 유효성 검사
-        if java_count < 1 or db_count < 1:
-            return jsonify(success=False, message="출제 개수는 1 이상이어야 합니다."), 400
+        # 유효성 검사 (0도 가능하도록 수정)
+        if (java_mc_count < 0 or java_sub_count < 0 or db_mc_count < 0 or 
+            db_sub_count < 0 or ps_mc_count < 0):
+            return jsonify(success=False, message="출제 개수는 0 이상이어야 합니다."), 400
         
-        config = {"java_count": java_count, "db_count": db_count}
+        config = {
+            "java_mc_count": java_mc_count,
+            "java_sub_count": java_sub_count,
+            "db_mc_count": db_mc_count,
+            "db_sub_count": db_sub_count,
+            "ps_mc_count": ps_mc_count
+        }
         save_random_config(config)
         return jsonify(success=True, config=config, message="랜덤 출제 설정이 저장되었습니다.")
     except ValueError as e:

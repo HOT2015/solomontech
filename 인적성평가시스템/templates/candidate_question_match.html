@@ -127,16 +127,25 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderQuestions() {
         const cat = categoryFilter.value;
         const dept = departmentFilter.value;
+        
+        console.log('필터 조건:', { category: cat, department: dept });
+        console.log('전체 문제 수:', allQuestions.length);
+        
         // matched: 항상 전체 selectedQuestions에 해당하는 문제
         const matched = allQuestions.filter(q => selectedQuestions.includes(q.id));
         // unmatched: 필터 적용
         let unmatched = allQuestions.filter(q => !selectedQuestions.includes(q.id));
+        
+        console.log('매칭되지 않은 문제 수 (필터 전):', unmatched.length);
+        
         if (dept !== 'all') {
-            unmatched = unmatched.filter(q => q.department_id === dept);
+            unmatched = unmatched.filter(q => q.department_ids && q.department_ids.includes(dept));
         }
         if (cat !== 'all') {
             unmatched = unmatched.filter(q => q.category === cat);
         }
+        
+        console.log('매칭되지 않은 문제 수 (필터 후):', unmatched.length);
         // 전체 보기일 때는 카테고리, 문제명 순 정렬
         if (cat === 'all') {
             unmatched = unmatched.slice().sort((a, b) => {

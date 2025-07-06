@@ -1,4 +1,7 @@
 {
-  "java_count": 3,
-  "db_count": 1
+  "java_mc_count": 2,
+  "java_sub_count": 0,
+  "db_mc_count": 3,
+  "db_sub_count": 0,
+  "ps_mc_count": 0
 }
