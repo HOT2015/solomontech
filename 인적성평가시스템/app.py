@@ -245,20 +245,12 @@ def admin():
     candidates = data_manager.get_all_candidates()
     results = data_manager.get_all_results()
     departments = data_manager.load_departments()
-    
-    # Department 객체들을 딕셔너리로 변환
     departments_dict = [dept.to_dict() for dept in departments]
-    
-    # 모든 문제 로드 (기술 문제 + 문제해결 문제)
     all_questions = []
     questions = data_manager.load_questions()
     for q in questions:
         all_questions.append(q.to_dict())
-    
-    # 부서 미지정 문제 목록
     unassigned_questions = [q for q in all_questions if not q.get('department_ids') or len(q.get('department_ids', [])) == 0]
-    
-    # 날짜 포맷 변경 (ISO -> YYYY-MM-DD HH:MM:SS) 및 None 체크
     for c in candidates:
         if c.created_at:
             try:
@@ -267,11 +259,7 @@ def admin():
                 c.created_at_formatted = "N/A"
         else:
             c.created_at_formatted = "N/A"
-
-    # 대시보드 데이터 계산
     total_candidates = len(candidates)
-    
-    # 지원자별 결과 매핑
     candidate_results = {}
     for result in results:
         candidate = data_manager.get_candidate(result.candidate_id)
@@ -280,8 +268,12 @@ def admin():
                 'candidate': candidate,
                 'result': result
             }
-    
-    return render_template('admin.html', candidates=candidates, candidate_results=candidate_results, departments=departments_dict, unassigned_questions=unassigned_questions, questions=all_questions)
+    # candidates를 dict 리스트로 변환
+    candidates_dict = [c.to_dict() for c in candidates]
+    # created_at_formatted도 dict에 추가
+    for i, c in enumerate(candidates):
+        candidates_dict[i]['created_at_formatted'] = c.created_at_formatted
+    return render_template('admin.html', candidates=candidates_dict, candidate_results=candidate_results, departments=departments_dict, unassigned_questions=unassigned_questions, questions=all_questions)
 
 @app.route('/admin/candidate/delete/<candidate_id>', methods=['DELETE'])
 def delete_candidate(candidate_id):
@@ -662,20 +654,19 @@ def edit_candidate(candidate_id):
 
     if not name or not access_date or not test_duration or not department_id:
         return jsonify(success=False, message="모든 필드를 입력해야 합니다.")
-    
     try:
-        # data_manager.update_candidate 호출 시 'test_deadline' 없음
-        updated_candidate = data_manager.update_candidate(
-            candidate_id, 
-            name, 
-            access_date, 
-            int(test_duration),
-            department_id
-        )
-        if updated_candidate:
-            return jsonify(success=True, message="지원자 정보가 수정되었습니다.", candidate=updated_candidate.to_dict())
-        else:
+        # 기존 지원자 정보 불러오기
+        candidate = data_manager.get_candidate(candidate_id)
+        if not candidate:
             return jsonify(success=False, message="지원자를 찾을 수 없습니다.")
+        # 입력값으로 갱신
+        candidate.name = name
+        candidate.access_date = access_date
+        candidate.test_duration = int(test_duration)
+        candidate.department_id = department_id
+        # 저장
+        updated_candidate = data_manager.update_candidate(candidate)
+        return jsonify(success=True, message="지원자 정보가 수정되었습니다.", candidate=updated_candidate.to_dict())
     except (ValueError, TypeError):
         return jsonify(success=False, message="잘못된 데이터 형식입니다.")
 

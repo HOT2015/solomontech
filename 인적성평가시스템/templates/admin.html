@@ -281,35 +281,38 @@
                             </thead>
                             <tbody>
                                 {% for c in candidates %}
-                                <tr data-candidate-id="{{ c.id }}"
-                                    data-name="{{ c.name }}"
-                                    data-access-date="{{ c.access_date }}"
-                                    data-test-duration="{{ c.test_duration }}"
-                                    data-department-id="{{ c.department_id or '' }}">
+                                <tr data-candidate-id="{{ c['id'] }}"
+                                    data-name="{{ c['name'] }}"
+                                    data-access-date="{{ c['access_date'] }}"
+                                    data-test-duration="{{ c['test_duration'] }}"
+                                    data-department-id="{{ c['department_id'] or '' }}">
                                     <td>{{ loop.index }}</td>
-                                    <td>{{ c.name }}</td>
-                                    <td>{{ c.email or '미입력' }}</td>
-                                    <td>{{ c.phone or '미입력' }}</td>
+                                    <td>{{ c['name'] }}</td>
+                                    <td>{{ c['email'] or '미입력' }}</td>
+                                    <td>{{ c['phone'] or '미입력' }}</td>
                                     <td>
-                                      {% set dept_name = '미지정' %}
-                                      {% for dept in departments %}
-                                        {% if dept.id == c.department_id %}
-                                          {% set dept_name = dept.name %}
-                                        {% endif %}
-                                      {% endfor %}
-                                      {{ dept_name }}
-                                    </td>
-                                    <td>{{ c.created_at_formatted }}</td>
+  <b>
+    {{
+      departments
+      | selectattr('id', 'equalto', c['department_id'])
+      | map(attribute='name')
+      | list
+      | first
+      or '미지정'
+    }}
+  </b>
+</td>
+                                    <td>{{ c['created_at_formatted'] }}</td>
                                     <td>
-                                        {% if candidate_results[c.id] %}
+                                        {% if candidate_results[c['id']] %}
                                             <span class="badge bg-success">평가완료</span>
                                         {% else %}
                                             <span class="badge bg-warning text-dark">미완료</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ candidate_results[c.id].total_score if candidate_results[c.id] else 'N/A' }}</td>
+                                    <td>{{ candidate_results[c['id']].total_score if candidate_results[c['id']] else 'N/A' }}</td>
                                     <td>
-                                        {% if candidate_results[c.id] %}
+                                        {% if candidate_results[c['id']] %}
                                             <button class="btn btn-sm btn-outline-secondary" disabled title="평가완료된 지원자는 수정할 수 없습니다">
                                                 <i class="fas fa-edit"></i> 수정
                                             </button>
@@ -321,8 +324,8 @@
                                         <button class="btn btn-sm btn-outline-danger delete-candidate-btn">
                                             <i class="fas fa-trash"></i> 삭제
                                         </button>
-                                        {% if candidate_results[c.id] %}
-                                        <a href="{{ url_for('admin_answer_detail', candidate_id=c.id) }}" class="btn btn-sm btn-outline-info">
+                                        {% if candidate_results[c['id']] %}
+                                        <a href="{{ url_for('admin_answer_detail', candidate_id=c['id']) }}" class="btn btn-sm btn-outline-info">
                                             <i class="fas fa-file-alt"></i> 결과
                                         </a>
                                         {% endif %}
