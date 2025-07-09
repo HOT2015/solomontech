@@ -7,7 +7,7 @@ assessmentSystem/
 ├── docs/                                    # 문서 디렉토리
 │   ├── 인적성평가시스템_요건정의서.md        # 시스템 요건정의서
 │   └── ...
-├── 인적성평가시스템/                        # 메인 소스코드 디렉토리 (src/)
+├── aptitude_system/                        # 메인 소스코드 디렉토리 (src/)
 │   ├── app.py                              # 메인 Flask 애플리케이션
 │   ├── models.py                           # 데이터 모델 및 관리자
 │   ├── check_time.py                       # 시간 체크 유틸리티
@@ -28,7 +28,7 @@ assessmentSystem/
 ## 🐍 Python 소스코드 파일
 
 ### 1. `app.py` - 메인 애플리케이션
-**위치**: `인적성평가시스템/app.py`  
+**위치**: `aptitude_system/app.py`  
 **역할**: Flask 웹 애플리케이션의 메인 진입점
 
 #### 주요 기능
@@ -58,7 +58,7 @@ assessmentSystem/
 ```
 
 ### 2. `models.py` - 데이터 모델 및 관리자
-**위치**: `인적성평가시스템/models.py`  
+**위치**: `aptitude_system/models.py`  
 **역할**: 데이터 모델 정의 및 데이터 관리 기능
 
 #### 주요 클래스
@@ -94,7 +94,7 @@ class TestResult:
 ```
 
 ### 3. `check_time.py` - 시간 체크 유틸리티
-**위치**: `인적성평가시스템/check_time.py`  
+**위치**: `aptitude_system/check_time.py`  
 **역할**: 시간 관련 유틸리티 함수
 
 #### 주요 기능
@@ -110,7 +110,7 @@ def get_current_time():
 ```
 
 ### 4. `create_sample_logo.py` - 샘플 로고 생성
-**위치**: `인적성평가시스템/create_sample_logo.py`  
+**위치**: `aptitude_system/create_sample_logo.py`  
 **역할**: 샘플 로고 이미지 생성 스크립트
 
 #### 주요 기능
@@ -123,7 +123,7 @@ def save_logo_with_timestamp():
 ```
 
 ### 5. `config.json` - 설정 파일
-**위치**: `인적성평가시스템/config.json`  
+**위치**: `aptitude_system/config.json`  
 **역할**: 애플리케이션 설정 정보
 
 #### 주요 설정
@@ -141,7 +141,7 @@ def save_logo_with_timestamp():
 ## 📁 데이터 디렉토리 (`data/`)
 
 ### 1. `candidates.json` - 지원자 데이터
-**위치**: `인적성평가시스템/data/candidates.json`  
+**위치**: `aptitude_system/data/candidates.json`  
 **역할**: 등록된 지원자 정보 저장
 
 ```json
@@ -161,7 +161,7 @@ def save_logo_with_timestamp():
 ```
 
 ### 2. `questions.json` - 문제 데이터
-**위치**: `인적성평가시스템/data/questions.json`  
+**위치**: `aptitude_system/data/questions.json`  
 **역할**: 평가 문제 정보 저장
 
 ```json
@@ -181,7 +181,7 @@ def save_logo_with_timestamp():
 ```
 
 ### 3. `results.json` - 평가 결과 데이터
-**위치**: `인적성평가시스템/data/results.json`  
+**위치**: `aptitude_system/data/results.json`  
 **역할**: 평가 결과 및 답안 저장
 
 ```json
@@ -205,7 +205,7 @@ def save_logo_with_timestamp():
 ```
 
 ### 4. `departments.json` - 부서 데이터
-**위치**: `인적성평가시스템/data/departments.json`  
+**위치**: `aptitude_system/data/departments.json`  
 **역할**: 부서 정보 및 문제 할당 관리
 
 ```json
@@ -220,7 +220,7 @@ def save_logo_with_timestamp():
 ```
 
 ### 5. `random_config.json` - 랜덤 출제 설정
-**위치**: `인적성평가시스템/data/random_config.json`  
+**위치**: `aptitude_system/data/random_config.json`  
 **역할**: 카테고리별 랜덤 출제 개수 설정
 
 ```json
@@ -238,7 +238,7 @@ def save_logo_with_timestamp():
 ## 🎨 정적 파일 디렉토리 (`static/`)
 
 ### 1. CSS 파일
-**위치**: `인적성평가시스템/static/css/`  
+**위치**: `aptitude_system/static/css/`  
 **역할**: 스타일시트 파일
 
 - **Bootstrap**: 기본 UI 프레임워크
@@ -246,7 +246,7 @@ def save_logo_with_timestamp():
 - **Custom CSS**: 프로젝트별 커스텀 스타일
 
 ### 2. JavaScript 파일
-**위치**: `인적성평가시스템/static/js/`  
+**위치**: `aptitude_system/static/js/`  
 **역할**: 클라이언트 사이드 스크립트
 
 #### 주요 기능
@@ -257,7 +257,7 @@ def save_logo_with_timestamp():
 - **데이터 필터링**: 부서별 문제 필터링
 
 ### 3. 이미지 파일
-**위치**: `인적성평가시스템/static/images/`  
+**위치**: `aptitude_system/static/images/`  
 **역할**: 로고 및 이미지 파일
 
 - **로고 파일**: 회사 로고 및 브랜드 이미지
@@ -269,7 +269,7 @@ def save_logo_with_timestamp():
 ## 📄 템플릿 디렉토리 (`templates/`)
 
 ### 1. `base.html` - 기본 레이아웃
-**위치**: `인적성평가시스템/templates/base.html`  
+**위치**: `aptitude_system/templates/base.html`  
 **역할**: 모든 페이지의 기본 HTML 구조
 
 #### 주요 구성
@@ -356,7 +356,7 @@ def save_logo_with_timestamp():
 ## 📦 의존성 파일
 
 ### 1. `requirements.txt` - Python 의존성
-**위치**: `인적성평가시스템/requirements.txt`  
+**위치**: `aptitude_system/requirements.txt`  
 **역할**: 필요한 Python 패키지 목록
 
 ```

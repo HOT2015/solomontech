@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from models import Candidate, Question, TestResult, DataManager, Department
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 from docx import Document
 from werkzeug.utils import secure_filename
@@ -13,6 +13,55 @@ from transformers import pipeline
 
 app = Flask(__name__)
 app.secret_key = '인적성평가시스템_시크릿키_2024'  # 세션 관리를 위한 시크릿 키
+
+# 관리자 인증 관련 상수
+ADMIN_SESSION_KEY = 'admin_authenticated'
+ADMIN_SESSION_TIMEOUT = 60 * 60  # 1시간(초)
+
+# 관리자 암호 생성 함수
+def get_admin_password():
+    today = datetime.now().strftime('%Y%m%d')
+    return f"{today}1"
+
+# 관리자 인증 필요 데코레이터
+from functools import wraps
+
+def admin_login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get(ADMIN_SESSION_KEY):
+            # 세션 만료 체크
+            auth_time_raw = session.get('admin_auth_time')
+            auth_time = None
+            if isinstance(auth_time_raw, str):
+                try:
+                    auth_time = datetime.fromisoformat(auth_time_raw)
+                except Exception:
+                    auth_time = None
+            elif isinstance(auth_time_raw, datetime):
+                auth_time = auth_time_raw
+            now = datetime.now(timezone.utc).astimezone()  # 항상 aware datetime
+            if auth_time and (now - auth_time).total_seconds() < ADMIN_SESSION_TIMEOUT:
+                return f(*args, **kwargs)
+            session.pop(ADMIN_SESSION_KEY, None)
+            session.pop('admin_auth_time', None)
+        return redirect(url_for('admin_login', next=request.path))
+    return decorated_function
+
+# 관리자 암호 입력 페이지
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    error = None
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == get_admin_password():
+            session[ADMIN_SESSION_KEY] = True
+            session['admin_auth_time'] = datetime.now(timezone.utc).astimezone().isoformat()
+            next_url = request.args.get('next') or url_for('admin')
+            return redirect(next_url)
+        else:
+            error = '잘못된 암호입니다.'
+    return render_template('admin_login.html', error=error)
 
 # 회사 정보 설정 (이미지 파일과 함께 사용)
 app.config['COMPANY_NAME'] = '인적성 평가시스템'  # 회사명 (로고 이미지 파일명으로 변경 가능)
@@ -239,6 +288,7 @@ def result():
     return render_template('result.html', candidate=candidate, result=result)
 
 @app.route('/admin')
+@admin_login_required
 def admin():
     """관리자 페이지 - 대시보드"""
     candidates = data_manager.get_all_candidates()
