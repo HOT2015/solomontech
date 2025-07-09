@@ -3,7 +3,6 @@ from models import Candidate, Question, TestResult, DataManager, Department
 import os
 from datetime import datetime, timedelta
 import uuid
-import pandas as pd
 from docx import Document
 from werkzeug.utils import secure_filename
 import tempfile

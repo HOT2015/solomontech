@@ -4,5 +4,4 @@ Werkzeug==2.3.7
 Jinja2==3.1.2
 openpyxl==3.1.2      # 엑셀 파일 처리
 python-docx==0.8.11   # 워드 파일 처리
-pandas==2.0.3         # 데이터 처리
 # openpyxl, python-docx, pandas 등 파일 업로드용 패키지 삭제 
