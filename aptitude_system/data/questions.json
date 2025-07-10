@@ -5,7 +5,7 @@
       "category": "Database",
       "type": "객관식",
       "difficulty": "초급",
-      "question": "SQL에서 데이터를 조회할 때 사용하는 명령어는?",
+      "question": "SQL에서 데이터를 조회할 때 사용하는 명령어는? ",
       "points": 10,
       "department_ids": [
         "dept_5aafbf07-65dc-4967-9c04-822dd460c8ef"
