@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 import tempfile
 import requests
 import json
-import openai
 from transformers import pipeline
 
 app = Flask(__name__)
