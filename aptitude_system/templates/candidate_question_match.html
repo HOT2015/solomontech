@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}지원자-문제 매칭{% endblock %}
+
+{% block head %}
+<style>
+    .match-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        height: calc(100vh - 200px);
+    }
+    .candidate-list, .question-list {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 15px;
+        overflow-y: auto;
+    }
+    .candidate-list .list-group-item {
+        cursor: pointer;
+    }
+    .candidate-list .list-group-item.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .question-item {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-link"></i> 지원자-문제 매칭</h2>
+        <div>
+            <a href="{{ url_for('admin') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> 관리자 페이지로</a>
+            <button id="save-btn" class="btn btn-success" disabled><i class="fas fa-save"></i> 변경사항 저장</button>
+        </div>
+    </div>
+
+    <div class="match-container">
+        <!-- 지원자 목록 -->
+        <div class="candidate-list">
+            <h5>지원자 목록</h5>
+            {% if candidates %}
+            <div class="list-group">
+                {% for candidate in candidates %}
+                <a href="#" class="list-group-item list-group-item-action" 
+                   data-candidate-id="{{ candidate.id }}" 
+                   data-department-id="{{ candidate.department_id or '' }}"
+                   data-selected-questions='{{ candidate.selected_questions | tojson | safe }}'>
+                    {{ candidate.name }}
+                    <small class="d-block text-muted">{{ department_map.get(candidate.department_id, '부서 미지정') }}</small>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">평가 대기중인 지원자가 없습니다</h5>
+                <p class="text-muted">모든 지원자가 평가를 완료했거나, 등록된 지원자가 없습니다.</p>
+                <a href="{{ url_for('admin') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> 지원자 추가하기
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 문제 목록 -->
+        <div class="question-list">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5>문제 매칭 <span id="selected-candidate-name" class="text-primary"></span></h5>
+                <div class="d-flex align-items-center gap-2">
+                    <label for="department-filter" class="me-1 mb-0">부서</label>
+                    <select id="department-filter" class="form-select form-select-sm" style="width:160px;">
+                        <option value="all">전체 부서</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="category-filter" class="me-1 mb-0">카테고리</label>
+                    <select id="category-filter" class="form-select form-select-sm" style="width:160px;">
+                        <option value="all">전체</option>
+                        <option value="Java">Java</option>
+                        <option value="Database">Database</option>
+                        <option value="문제해결">문제해결</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="border rounded p-2 mb-2 bg-light">
+                        <h6 class="mb-2 text-success">현재 매칭된 문제 <span id="matched-count" class="fw-normal"></span></h6>
+                        <div id="matched-questions"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="border rounded p-2 mb-2 bg-white">
+                        <h6 class="mb-2 text-secondary">매칭되지 않은 문제 <span id="unmatched-count" class="fw-normal"></span></h6>
+                        <div id="unmatched-questions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentCandidateId = null;
+    let selectedQuestions = [];
+    let allQuestions = [];
+    const candidateLinks = document.querySelectorAll('.candidate-list .list-group-item');
+    const saveBtn = document.getElementById('save-btn');
+    const matchedDiv = document.getElementById('matched-questions');
+    const unmatchedDiv = document.getElementById('unmatched-questions');
+    const categoryFilter = document.getElementById('category-filter');
+    const departmentFilter = document.getElementById('department-filter');
+
+    // 모든 문제 정보 수집 (템플릿에서 데이터로 전달)
+    allQuestions = {{ questions|tojson }};
+
+    function renderQuestions() {
+        const cat = categoryFilter.value;
+        const dept = departmentFilter.value;
+        
+        console.log('필터 조건:', { category: cat, department: dept });
+        console.log('전체 문제 수:', allQuestions.length);
+        
+        // matched: 항상 전체 selectedQuestions에 해당하는 문제
+        const matched = allQuestions.filter(q => selectedQuestions.includes(q.id));
+        // unmatched: 필터 적용
+        let unmatched = allQuestions.filter(q => !selectedQuestions.includes(q.id));
+        
+        console.log('매칭되지 않은 문제 수 (필터 전):', unmatched.length);
+        
+        if (dept !== 'all') {
+            unmatched = unmatched.filter(q => q.department_ids && q.department_ids.includes(dept));
+        }
+        if (cat !== 'all') {
+            unmatched = unmatched.filter(q => q.category === cat);
+        }
+        
+        console.log('매칭되지 않은 문제 수 (필터 후):', unmatched.length);
+        // 전체 보기일 때는 카테고리, 문제명 순 정렬
+        if (cat === 'all') {
+            unmatched = unmatched.slice().sort((a, b) => {
+                if (a.category < b.category) return -1;
+                if (a.category > b.category) return 1;
+                return a.question.localeCompare(b.question);
+            });
+        }
+        matchedDiv.innerHTML = matched.length ? matched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" checked id="match-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="match-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}</label></div>`).join('') : '<div class="text-muted">매칭된 문제가 없습니다.</div>';
+        unmatchedDiv.innerHTML = unmatched.length ? unmatched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="unmatch-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="unmatch-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}</label></div>`).join('') : '<div class="text-muted">매칭되지 않은 문제가 없습니다.</div>';
+        document.getElementById('matched-count').textContent = `(${matched.length}문제)`;
+        document.getElementById('unmatched-count').textContent = `(${unmatched.length}문제)`;
+        // 이벤트 바인딩
+        matchedDiv.querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (!this.checked) {
+                    selectedQuestions = selectedQuestions.filter(id => id !== this.dataset.qid);
+                    renderQuestions();
+                }
+            });
+        });
+        unmatchedDiv.querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedQuestions.push(this.dataset.qid);
+                    renderQuestions();
+                }
+            });
+        });
+    }
+
+    // 지원자 목록이 있을 때만 이벤트 리스너 추가
+    if (candidateLinks.length > 0) {
+        candidateLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                candidateLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                currentCandidateId = this.dataset.candidateId;
+                selectedQuestions = JSON.parse(this.dataset.selectedQuestions);
+                document.getElementById('selected-candidate-name').textContent = `(${this.textContent.trim().split('\n')[0]})`;
+                saveBtn.disabled = false;
+                renderQuestions();
+            });
+        });
+    }
+
+    categoryFilter.addEventListener('change', renderQuestions);
+    departmentFilter.addEventListener('change', renderQuestions);
+
+    saveBtn.addEventListener('click', function() {
+        if (!currentCandidateId) {
+            alert('먼저 지원자를 선택해주세요.');
+            return;
+        }
+        fetch(`/api/candidate/${currentCandidateId}/questions/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question_ids: selectedQuestions })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('성공적으로 저장되었습니다.');
+                const activeLink = document.querySelector('.candidate-list .list-group-item.active');
+                if (activeLink) {
+                    activeLink.dataset.selectedQuestions = JSON.stringify(selectedQuestions);
+                }
+            } else {
+                alert('저장 실패: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('저장 중 오류가 발생했습니다.');
+        });
+    });
+});
+</script>
+{% endblock %} 

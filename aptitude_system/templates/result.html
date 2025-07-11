@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}평가 결과 - 솔로몬텍 인적성 평가시스템{% endblock %}
+
+{% block page_id %}
+<div class="page-id" style="background:#f8f9fa; border-bottom:1px solid #dee2e6; padding:4px 12px; font-size:0.95em; color:#888;">
+  화면ID: PAGE-RESULT (result.html)
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="result-card">
+            <h2 class="mb-4">
+                <i class="fas fa-trophy"></i> 평가 완료!
+            </h2>
+            <div class="score-display">{{ result.total_score }}점</div>
+            <div class="rank-badge">
+                <i class="fas fa-medal"></i> {{ result.rank }}위
+            </div>
+            <p class="mb-0">
+                <strong>{{ candidate.name }}</strong>님의 평가가 완료되었습니다.
+            </p>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">
+                    <i class="fas fa-chart-bar"></i> 상세 결과
+                </h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="fas fa-code"></i> 기술 평가
+                                </h5>
+                                <h3 class="mb-0">{{ result.scores.technical }}점</h3>
+                                <small>Java + Database</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="fas fa-lightbulb"></i> 문제해결력
+                                </h5>
+                                <h3 class="mb-0">{{ result.scores.problem_solving }}점</h3>
+                                <small>시나리오 기반</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle"></i> 평가 정보</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>지원자:</strong> {{ candidate.name }}</li>
+                            <li><strong>이메일:</strong> {{ candidate.email }}</li>
+                            <li><strong>평가일시:</strong> {{ result.test_date.replace('T', ' ')[:19] if result.test_date else '' }}</li>
+                            <li><strong>총점:</strong> {{ result.total_score }}점</li>
+                            <li><strong>순위:</strong> {{ result.rank }}위</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-percentage"></i> 점수 분석</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>기술 점수:</strong> {{ result.scores.technical }}점</li>
+                            <li><strong>문제해결력:</strong> {{ result.scores.problem_solving }}점</li>
+                            <li><strong>기술 비율:</strong> {{ "%.1f"|format(result.scores.technical / result.total_score * 100) if result.total_score > 0 else 0 }}%</li>
+                            <li><strong>문제해결력 비율:</strong> {{ "%.1f"|format(result.scores.problem_solving / result.total_score * 100) if result.total_score > 0 else 0 }}%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-comments"></i> 평가 피드백
+                </h5>
+                
+                {% if result.total_score >= 150 %}
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-star"></i> 우수한 성과</h6>
+                    <p class="mb-0">전반적으로 우수한 기술 역량과 문제 해결력을 보여주셨습니다. 실무에서도 충분히 좋은 성과를 낼 수 있을 것으로 예상됩니다.</p>
+                </div>
+                {% elif result.total_score >= 120 %}
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-thumbs-up"></i> 양호한 성과</h6>
+                    <p class="mb-0">기본적인 기술 역량을 갖추고 있으며, 문제 해결력도 양호합니다. 추가 학습을 통해 더욱 향상될 수 있습니다.</p>
+                </div>
+                {% elif result.total_score >= 90 %}
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> 보통 수준</h6>
+                    <p class="mb-0">기본적인 기술 지식은 있으나, 더 깊이 있는 학습이 필요합니다. 문제 해결력 향상을 위한 실습이 권장됩니다.</p>
+                </div>
+                {% else %}
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-times-circle"></i> 개선 필요</h6>
+                    <p class="mb-0">기술 역량과 문제 해결력 모두 개선이 필요합니다. 기초부터 차근차근 학습하시기 바랍니다.</p>
+                </div>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <h6>개선 제안사항:</h6>
+                    <ul>
+                        <li>기술 지식: Java와 Database 관련 추가 학습</li>
+                        <li>문제 해결력: 실무 시나리오 기반 문제 해결 연습</li>
+                        <li>코딩 실습: 실제 프로젝트 참여 및 코드 작성 연습</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-home"></i> 메인으로 돌아가기
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+                <i class="fas fa-sign-out-alt"></i> 로그아웃
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
