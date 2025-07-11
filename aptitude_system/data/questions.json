@@ -7,9 +7,7 @@
       "difficulty": "초급",
       "question": "SQL에서 데이터를 조회할 때 사용하는 명령어는? ",
       "points": 10,
-      "department_ids": [
-        "dept_5aafbf07-65dc-4967-9c04-822dd460c8ef"
-      ],
+      "department_ids": [],
       "options": [
         "SELECT",
         "GET",
@@ -26,7 +24,6 @@
       "question": "SQL에서 데이터를 삽입할 때 사용하는 명령어는?",
       "points": 10,
       "department_ids": [
-        "dept_90d93f2e-3564-459e-b625-ee80cfb443f6",
         "dept_1"
       ],
       "options": [

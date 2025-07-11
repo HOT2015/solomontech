@@ -15,7 +15,7 @@ app.secret_key = '인적성평가시스템_시크릿키_2024'  # 세션 관리�
 
 # 관리자 인증 관련 상수
 ADMIN_SESSION_KEY = 'admin_authenticated'
-ADMIN_SESSION_TIMEOUT = 60 * 60  # 1시간(초)
+ADMIN_SESSION_TIMEOUT = 600 * 600  # 10시간(초)
 
 # 관리자 암호 생성 함수
 def get_admin_password():
@@ -97,11 +97,21 @@ def get_openai_api_key():
 
 def load_random_config():
     """랜덤 출제 개수 설정 로드"""
-    default = {"java_count": 10, "db_count": 3}
+    # 새로운 카테고리별 기본값 설정 (0개로 초기화)
+    default = {
+        "java_mc_count": 0,
+        "java_sub_count": 0,
+        "db_mc_count": 0,
+        "db_sub_count": 0,
+        "ps_mc_count": 0
+    }
     try:
         with open(RANDOM_CONFIG_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
+            loaded_config = json.load(f)
+            print(f"로드된 설정: {loaded_config}")
+            return loaded_config
+    except Exception as e:
+        print(f"설정 파일 로드 실패, 기본값 사용: {e}")
         return default
 
 def save_random_config(config):
@@ -111,12 +121,20 @@ def save_random_config(config):
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
     
+    print(f"저장할 설정: {config}")
     with open(RANDOM_CONFIG_FILE, 'w', encoding='utf-8') as f:
         json.dump(config, f, ensure_ascii=False, indent=2)
+    print(f"설정이 {RANDOM_CONFIG_FILE}에 저장되었습니다.")
 
 def allowed_file(filename):
     """허용된 파일 확장자인지 확인"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def safe_int(val):
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return 0
 
 @app.route('/')
 def index():
@@ -190,13 +208,13 @@ def test_start():
         db_sub = [q for q in department_questions if q.category == 'Database' and q.type == '주관식']
         ps_mc = [q for q in department_questions if q.category == '문제해결' and q.type == '객관식']
         
-        # 출제 개수 설정값 적용
+        # 출제 개수 설정값 적용 (기본값 0으로 설정)
         random_config = load_random_config()
-        java_mc_count = random_config.get('java_mc_count', 2)
-        java_sub_count = random_config.get('java_sub_count', 1)
-        db_mc_count = random_config.get('db_mc_count', 3)
-        db_sub_count = random_config.get('db_sub_count', 1)
-        ps_mc_count = random_config.get('ps_mc_count', 3)
+        java_mc_count = random_config.get('java_mc_count', 0)
+        java_sub_count = random_config.get('java_sub_count', 0)
+        db_mc_count = random_config.get('db_mc_count', 0)
+        db_sub_count = random_config.get('db_sub_count', 0)
+        ps_mc_count = random_config.get('ps_mc_count', 0)
         
         import random
         selected_java_mc = random.sample(java_mc, min(len(java_mc), java_mc_count))
@@ -879,7 +897,16 @@ def unassign_question_department(question_id):
 
 @app.route('/api/random_config', methods=['GET'])
 def get_random_config():
-    return jsonify(load_random_config())
+    config = load_random_config()
+    print(f"API 호출 - 반환할 설정: {config}")  # 디버깅 로그
+    response = jsonify(config)
+    # 완전한 캐시 방지 헤더 추가
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    response.headers['Last-Modified'] = datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
+    response.headers['ETag'] = str(hash(str(config)))  # 고유 ETag 추가
+    return response
 
 @app.route('/api/random_config', methods=['POST'])
 def set_random_config():
@@ -888,12 +915,16 @@ def set_random_config():
         if not data:
             return jsonify(success=False, message="데이터가 전송되지 않았습니다."), 400
         
-        # 새로운 카테고리별 설정값 가져오기
-        java_mc_count = int(data.get('java_mc_count', 2))
-        java_sub_count = int(data.get('java_sub_count', 1))
-        db_mc_count = int(data.get('db_mc_count', 3))
-        db_sub_count = int(data.get('db_sub_count', 1))
-        ps_mc_count = int(data.get('ps_mc_count', 3))
+        # 새로운 카테고리별 설정값 가져오기 (기본값 0, 안전한 변환)
+        java_mc_count = safe_int(data.get('java_mc_count'))
+        java_sub_count = safe_int(data.get('java_sub_count'))
+        db_mc_count = safe_int(data.get('db_mc_count'))
+        db_sub_count = safe_int(data.get('db_sub_count'))
+        ps_mc_count = safe_int(data.get('ps_mc_count'))
+        
+        # 디버깅 로그 추가
+        print(f"받은 데이터: {data}")
+        print(f"변환된 값들: java_mc={java_mc_count}, java_sub={java_sub_count}, db_mc={db_mc_count}, db_sub={db_sub_count}, ps_mc={ps_mc_count}")
         
         # 유효성 검사 (0도 가능하도록 수정)
         if (java_mc_count < 0 or java_sub_count < 0 or db_mc_count < 0 or 

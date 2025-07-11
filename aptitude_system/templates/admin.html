@@ -1199,16 +1199,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // 랜덤 출제 개수 설정 불러오기
-    fetch('/api/random_config')
+    // 랜덤 출제 개수 설정 불러오기 (캐시 방지 + 타임스탬프)
+    fetch('/api/random_config?t=' + Date.now(), {
+        method: 'GET',
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+    })
         .then(res => res.json())
         .then(cfg => {
-            // 기존 설정값이 있으면 사용, 없으면 기본값 사용
-            document.getElementById('javaMcCountInput').value = cfg.java_mc_count || 2;
-            document.getElementById('javaSubCountInput').value = cfg.java_sub_count || 1;
-            document.getElementById('dbMcCountInput').value = cfg.db_mc_count || 3;
-            document.getElementById('dbSubCountInput').value = cfg.db_sub_count || 1;
-            document.getElementById('psMcCountInput').value = cfg.ps_mc_count || 3;
+            console.log('서버에서 받은 설정:', cfg);
+            document.getElementById('javaMcCountInput').value = (typeof cfg.java_mc_count === 'number') ? cfg.java_mc_count : 0;
+            document.getElementById('javaSubCountInput').value = (typeof cfg.java_sub_count === 'number') ? cfg.java_sub_count : 0;
+            document.getElementById('dbMcCountInput').value = (typeof cfg.db_mc_count === 'number') ? cfg.db_mc_count : 0;
+            document.getElementById('dbSubCountInput').value = (typeof cfg.db_sub_count === 'number') ? cfg.db_sub_count : 0;
+            document.getElementById('psMcCountInput').value = (typeof cfg.ps_mc_count === 'number') ? cfg.ps_mc_count : 0;
+            console.log('설정된 input 값들:', {
+                java_mc: document.getElementById('javaMcCountInput').value,
+                java_sub: document.getElementById('javaSubCountInput').value,
+                db_mc: document.getElementById('dbMcCountInput').value,
+                db_sub: document.getElementById('dbSubCountInput').value,
+                ps_mc: document.getElementById('psMcCountInput').value
+            });
         });
     // 저장 이벤트
     document.getElementById('randomConfigForm').addEventListener('submit', function(e) {
@@ -1220,11 +1234,11 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                java_mc_count: parseInt(data.java_mc_count),
-                java_sub_count: parseInt(data.java_sub_count),
-                db_mc_count: parseInt(data.db_mc_count),
-                db_sub_count: parseInt(data.db_sub_count),
-                ps_mc_count: parseInt(data.ps_mc_count)
+                java_mc_count: isNaN(parseInt(data.java_mc_count)) ? 0 : parseInt(data.java_mc_count),
+                java_sub_count: isNaN(parseInt(data.java_sub_count)) ? 0 : parseInt(data.java_sub_count),
+                db_mc_count: isNaN(parseInt(data.db_mc_count)) ? 0 : parseInt(data.db_mc_count),
+                db_sub_count: isNaN(parseInt(data.db_sub_count)) ? 0 : parseInt(data.db_sub_count),
+                ps_mc_count: isNaN(parseInt(data.ps_mc_count)) ? 0 : parseInt(data.ps_mc_count)
             })
         })
         .then(res => res.json())
