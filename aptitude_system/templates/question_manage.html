@@ -30,6 +30,18 @@
                     <h5 class="mb-0">문제 목록</h5>
                 </div>
                 <div class="card-body">
+                    <!-- 디버깅 정보 -->
+                    <div class="alert alert-info mb-3">
+                        <strong>디버깅 정보:</strong><br>
+                        기술 문제 수: {{ technical_questions | length }}<br>
+                        문제해결 문제 수: {{ problem_solving_questions | length }}<br>
+                        미지정 문제 수: {{ unassigned_count }}<br>
+                        부서별 통계: 
+                        {% for dept in department_info %}
+                            {{ dept.name }}({{ dept.count }})
+                        {% endfor %}
+                    </div>
+                    
                     <!-- 카테고리 라디오 버튼 필터 -->
                     <div class="row mb-3 align-items-center">
                         <div class="col-auto">
@@ -52,9 +64,10 @@
                         </div>
                         <div class="col-auto">
                             <select id="departmentFilter" class="form-select form-select-sm">
-                                <option value="">전체 부서</option>
-                                {% for dept in departments %}
-                                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                <option value="all">전체 부서</option>
+                                <option value="unassigned">미지정 ({{ unassigned_count }}문제)</option>
+                                {% for dept in department_info %}
+                                <option value="{{ dept.id }}">{{ dept.name }} ({{ dept.count }}문제)</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -66,7 +79,7 @@
                     <div id="technicalQuestions">
                         {% if technical_questions %}
                             {% for question in technical_questions %}
-                            <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}" data-department-id="{{ question.department_id or '' }}">
+                            <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}" data-department-ids="{{ question.department_ids | join(',') if question.department_ids else '' }}">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-8">
@@ -76,13 +89,15 @@
                                                 <span class="badge bg-secondary">{{ question.type }}</span>
                                                 <span class="badge bg-info">{{ question.difficulty }}</span>
                                                 <span class="badge bg-success">{{ question.points }}점</span>
-                                                {% set dept_name = '미지정' %}
-                                                {% for dept in departments %}
-                                                    {% if dept.id == question.department_id %}
-                                                        {% set dept_name = dept.name %}
-                                                    {% endif %}
-                                                {% endfor %}
-                                                <span class="badge bg-dark">{{ dept_name if question.department_id else '미지정' }}</span>
+                                                {% if question.department_ids %}
+                                                    {% for dept in departments %}
+                                                        {% if dept.id in question.department_ids %}
+                                                            <span class="badge bg-dark">{{ dept.name }}</span>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <span class="badge bg-dark">미지정</span>
+                                                {% endif %}
                                             </div>
                                             {% if question.type == "객관식" %}
                                             <div class="mt-2">
@@ -129,7 +144,7 @@
                     <div id="problemSolvingQuestions">
                         {% if problem_solving_questions %}
                             {% for question in problem_solving_questions %}
-                            <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}" data-department-id="{{ question.department_id or '' }}">
+                            <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}" data-department-ids="{{ question.department_ids | join(',') if question.department_ids else '' }}">
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-8">
@@ -139,13 +154,15 @@
                                                 <span class="badge bg-secondary">{{ question.type }}</span>
                                                 <span class="badge bg-info">{{ question.difficulty }}</span>
                                                 <span class="badge bg-success">{{ question.points }}점</span>
-                                                {% set dept_name = '미지정' %}
-                                                {% for dept in departments %}
-                                                    {% if dept.id == question.department_id %}
-                                                        {% set dept_name = dept.name %}
-                                                    {% endif %}
-                                                {% endfor %}
-                                                <span class="badge bg-dark">{{ dept_name if question.department_id else '미지정' }}</span>
+                                                {% if question.department_ids %}
+                                                    {% for dept in departments %}
+                                                        {% if dept.id in question.department_ids %}
+                                                            <span class="badge bg-dark">{{ dept.name }}</span>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <span class="badge bg-dark">미지정</span>
+                                                {% endif %}
                                             </div>
                                             {% if question.type == "객관식" %}
                                             <div class="mt-2">
@@ -450,14 +467,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedCategory = document.querySelector('.category-radio:checked').value;
         const selectedDepartment = departmentFilter.value;
         let visibleCount = 0;
-        
+        // 한글 주석: 부서 필터링 로직 단순화
         questionItems.forEach(item => {
             const itemCategory = item.dataset.category;
-            const itemDepartment = item.dataset.departmentId;
-
+            const itemDepartments = item.dataset.departmentIds ? item.dataset.departmentIds.split(',') : [];
             const categoryMatch = (selectedCategory === '' || selectedCategory === itemCategory);
-            const departmentMatch = (selectedDepartment === '' || selectedDepartment === itemDepartment);
-
+            let departmentMatch = false;
+            if (selectedDepartment === 'all') {
+                departmentMatch = true; // 전체 부서
+            } else if (selectedDepartment === 'unassigned') {
+                departmentMatch = (itemDepartments.length === 0 || (itemDepartments.length === 1 && itemDepartments[0] === ''));
+            } else {
+                departmentMatch = itemDepartments.includes(selectedDepartment);
+            }
             if (categoryMatch && departmentMatch) {
                 item.style.display = 'block';
                 visibleCount++;
@@ -465,7 +487,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.style.display = 'none';
             }
         });
-        
         questionCountNum.textContent = visibleCount;
     }
 

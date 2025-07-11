@@ -67,24 +67,23 @@ class Department:
 class Question:
     """문제 정보를 관리하는 클래스"""
     
-    def __init__(self, question_data: Dict):
-        self.id = question_data["id"]
-        self.category = question_data["category"]
-        self.type = question_data["type"]
-        self.difficulty = question_data["difficulty"]
-        self.question = question_data["question"]
-        self.options = question_data.get("options", [])
-        self.correct_answer = question_data["correct_answer"]
-        self.keywords = question_data.get("keywords", [])
-        self.points = question_data["points"]
-        # 부서 ID를 리스트로 관리 (여러 부서 할당 가능)
-        if "department_ids" in question_data:
-            self.department_ids = question_data["department_ids"]
-        elif "department_id" in question_data and question_data["department_id"]:
-            # 기존 단일 department_id를 리스트로 변환
-            self.department_ids = [question_data["department_id"]]
-        else:
+    def __init__(self, id, category, type, difficulty, question, options=None, correct_answer=None, keywords=None, points=1, department_ids=None):
+        self.id = id
+        self.category = category
+        self.type = type
+        self.difficulty = difficulty
+        self.question = question
+        self.options = options or []
+        self.correct_answer = correct_answer
+        self.keywords = keywords or []
+        self.points = points
+        # department_ids가 None이거나 단일 문자열이면 리스트로 변환
+        if department_ids is None:
             self.department_ids = []
+        elif isinstance(department_ids, str):
+            self.department_ids = [department_ids]
+        else:
+            self.department_ids = list(department_ids)
     
     def is_correct(self, answer: str) -> bool:
         """답안이 정답인지 확인"""
@@ -116,6 +115,22 @@ class Question:
             data["keywords"] = self.keywords
             data["correct_answer"] = self.correct_answer
         return data
+
+    @staticmethod
+    def from_dict(q):
+        # dict에서 Question 객체 생성 (department_ids 보정)
+        return Question(
+            id=q.get('id'),
+            category=q.get('category'),
+            type=q.get('type'),
+            difficulty=q.get('difficulty'),
+            question=q.get('question'),
+            options=q.get('options'),
+            correct_answer=q.get('correct_answer'),
+            keywords=q.get('keywords'),
+            points=q.get('points'),
+            department_ids=q.get('department_ids')
+        )
 
 class TestResult:
     """평가 결과를 관리하는 클래스"""
@@ -271,7 +286,7 @@ class DataManager:
             
             all_questions_data = technical_questions_data + problem_solving_questions_data
             
-            return [Question(q) for q in all_questions_data]
+            return [Question.from_dict(q) for q in all_questions_data]
         except (FileNotFoundError, json.JSONDecodeError):
             return []
     

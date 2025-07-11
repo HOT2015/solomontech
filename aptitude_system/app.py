@@ -356,10 +356,49 @@ def question_manage():
     questions_data = data_manager._load_json(data_manager.questions_file)
     problem_solving_questions = questions_data.get("problem_solving_questions", [])
     departments = data_manager.load_departments()
+    
+    # 디버깅 로그 추가
+    print(f"기술 문제 수: {len(technical_questions)}")
+    print(f"문제해결 문제 수: {len(problem_solving_questions)}")
+    for q in technical_questions[:3]:  # 처음 3개만 로그
+        print(f"문제 {q.id}: department_ids = {getattr(q, 'department_ids', [])}")
+    
+    # 부서별 문제 통계 계산
+    department_stats = {}
+    unassigned_count = 0
+    
+    # 모든 문제를 하나의 리스트로 합치기
+    all_questions = technical_questions + problem_solving_questions
+    
+    for question in all_questions:
+        department_ids = getattr(question, 'department_ids', [])
+        if not department_ids:
+            unassigned_count += 1
+        else:
+            for dept_id in department_ids:
+                if dept_id not in department_stats:
+                    department_stats[dept_id] = 0
+                department_stats[dept_id] += 1
+    
+    # 부서 이름과 함께 통계 정보 생성
+    department_info = []
+    for dept in departments:
+        count = department_stats.get(dept.id, 0)
+        department_info.append({
+            'id': dept.id,
+            'name': dept.name,
+            'count': count
+        })
+    
+    print(f"부서별 통계: {department_info}")
+    print(f"미지정 문제 수: {unassigned_count}")
+    
     return render_template('question_manage.html', 
                          technical_questions=technical_questions, 
                          problem_solving_questions=problem_solving_questions,
-                         departments=departments)
+                         departments=departments,
+                         department_info=department_info,
+                         unassigned_count=unassigned_count)
 
 @app.route('/admin/questions/add', methods=['POST'])
 def add_question():
@@ -379,7 +418,8 @@ def add_question():
                 'difficulty': data['difficulty'],
                 'question': data['question'],
                 'points': int(data['points']),
-                'department_id': data.get('department_id', 'dept_1')  # 부서 ID 추가
+                # 부서 ID를 리스트로 저장 (없으면 빈 리스트)
+                'department_ids': [data.get('department_id', 'dept_1')] if data.get('department_id') else []
             }
             if data['type'] == '객관식':
                 question_data['options'] = data['options']
@@ -407,7 +447,8 @@ def add_question():
                 'difficulty': data['difficulty'],
                 'question': data['question'],
                 'points': int(data['points']),
-                'department_id': data.get('department_id', 'dept_1')  # 부서 ID 추가
+                # 부서 ID를 리스트로 저장 (없으면 빈 리스트)
+                'department_ids': [data.get('department_id', 'dept_1')] if data.get('department_id') else []
             }
             if data['type'] == '객관식':
                 question_data['options'] = data['options']
@@ -442,7 +483,8 @@ def edit_question(question_id):
                     'difficulty': data['difficulty'],
                     'question': data['question'],
                     'points': int(data['points']),
-                    'department_id': data.get('department_id', 'dept_1')
+                    # 부서 ID를 리스트로 저장 (없으면 빈 리스트)
+                    'department_ids': [data.get('department_id', 'dept_1')] if data.get('department_id') else []
                 })
                 if data['type'] == '객관식':
                     question['options'] = data['options']
@@ -463,7 +505,8 @@ def edit_question(question_id):
                     'difficulty': data['difficulty'],
                     'question': data['question'],
                     'points': int(data['points']),
-                    'department_id': data.get('department_id', 'dept_1')
+                    # 부서 ID를 리스트로 저장 (없으면 빈 리스트)
+                    'department_ids': [data.get('department_id', 'dept_1')] if data.get('department_id') else []
                 })
                 if data['type'] == '객관식':
                     question['options'] = data['options']
@@ -1032,7 +1075,49 @@ def set_openai_api_key():
     except Exception as e:
         return jsonify({'success': False, 'message': f'저장 실패: {str(e)}'}), 500
 
+# 기존 문제 데이터 마이그레이션 스크립트 (단발성 실행)
+def migrate_questions_department_ids():
+    """
+    기존 questions.json 파일에서 department_id(단수)를 department_ids(복수, 리스트)로 변환
+    """
+    import os
+    questions_file = os.path.join(BASE_DIR, 'data', 'questions.json')
+    if not os.path.exists(questions_file):
+        print('questions.json 파일이 존재하지 않습니다.')
+        return
+    with open(questions_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    changed = False
+    for section in ['technical_questions', 'problem_solving_questions']:
+        if section in data:
+            for q in data[section]:
+                if 'department_id' in q:
+                    dept_id = q['department_id']
+                    if dept_id:
+                        q['department_ids'] = [dept_id]
+                    else:
+                        q['department_ids'] = []
+                    del q['department_id']
+                    changed = True
+                elif 'department_ids' not in q:
+                    q['department_ids'] = []
+                    changed = True
+    if changed:
+        with open(questions_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print('questions.json 파일이 마이그레이션되었습니다.')
+    else:
+        print('변경사항 없음. 이미 최신 구조입니다.')
+
+@app.route('/api/ping')
+def api_ping():
+    """
+    클라이언트에서 서버 연결 유지를 위해 주기적으로 호출하는 핑 엔드포인트
+    """
+    return 'pong', 200
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
+    migrate_questions_department_ids()  # 서버 실행 전 1회 마이그레이션
     app.run(host="0.0.0.0", port=port) 
