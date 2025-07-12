@@ -30,6 +30,20 @@
                     <h5 class="mb-0">문제 목록</h5>
                 </div>
                 <div class="card-body">
+<<<<<<< HEAD
+=======
+                    <!-- 디버깅 정보 -->
+                    <div class="alert alert-info mb-3">
+                        <strong>디버깅 정보:</strong><br>
+                        기술 문제 수: {{ technical_questions | length }}<br>
+                        문제해결 문제 수: {{ problem_solving_questions | length }}<br>
+                        미지정 문제 수: {{ unassigned_count }}<br>
+                        부서별 통계: 
+                        {% for dept in department_info %}
+                            {{ dept.name }}({{ dept.count }})
+                        {% endfor %}
+                    </div>
+>>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
                     
                     <!-- 카테고리 라디오 버튼 필터 -->
                     <div class="row mb-3 align-items-center">
@@ -118,8 +132,13 @@
                                             <a href="{{ url_for('edit_question_page', question_id=question.id) }}" class="btn btn-sm btn-outline-primary edit-question" data-id="{{ question.id }}">
                                                 <i class="fas fa-edit"></i> 수정
                                             </a>
+<<<<<<< HEAD
                                             <button class="btn btn-sm btn-outline-danger delete-question" data-id="{{ question.id }}">
                                                 <i class="fas fa-trash"></i> 삭제
+=======
+                                            <button class="btn btn-sm btn-outline-danger unassign-question" data-id="{{ question.id }}">
+                                                <i class="fas fa-trash"></i> 해제
+>>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
                                             </button>
                                         </div>
                                     </div>
@@ -183,8 +202,13 @@
                                             <a href="{{ url_for('edit_question_page', question_id=question.id) }}" class="btn btn-sm btn-outline-primary edit-question" data-id="{{ question.id }}">
                                                 <i class="fas fa-edit"></i> 수정
                                             </a>
+<<<<<<< HEAD
                                             <button class="btn btn-sm btn-outline-danger delete-question" data-id="{{ question.id }}">
                                                 <i class="fas fa-trash"></i> 삭제
+=======
+                                            <button class="btn btn-sm btn-outline-danger unassign-question" data-id="{{ question.id }}">
+                                                <i class="fas fa-trash"></i> 해제
+>>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
                                             </button>
                                         </div>
                                     </div>
@@ -216,6 +240,7 @@
             </div>
             <form id="addQuestionForm">
                 <div class="modal-body">
+<<<<<<< HEAD
                     <!-- 기본 정보 섹션 -->
                     <div class="card mb-4">
                         <div class="card-header bg-light">
@@ -395,6 +420,127 @@
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="fas fa-plus me-2"></i>문제 추가
                     </button>
+=======
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">부서</label>
+                                <select name="department_id" class="form-select" required>
+                                    <option value="">부서 선택</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">카테고리</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="category" id="addCategoryJava" value="Java" required>
+                                        <label class="form-check-label" for="addCategoryJava">Java</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="category" id="addCategoryDatabase" value="Database">
+                                        <label class="form-check-label" for="addCategoryDatabase">Database</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="category" id="addCategoryProblemSolving" value="문제해결">
+                                        <label class="form-check-label" for="addCategoryProblemSolving">문제해결</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">문제 유형</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type" id="addTypeObjective" value="객관식" required>
+                                        <label class="form-check-label" for="addTypeObjective">객관식</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type" id="addTypeSubjective" value="주관식">
+                                        <label class="form-check-label" for="addTypeSubjective">주관식</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">난이도</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="difficulty" id="addDiffEasy" value="초급" required>
+                                        <label class="form-check-label" for="addDiffEasy">초급</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="difficulty" id="addDiffMedium" value="중급">
+                                        <label class="form-check-label" for="addDiffMedium">중급</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">배점</label>
+                                <input type="number" name="points" class="form-control" min="1" max="50" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">문제 내용</label>
+                        <textarea name="question" class="form-control" rows="3" required></textarea>
+                    </div>
+                    
+                    <!-- 객관식 선택지 -->
+                    <div id="addOptionsSection">
+                        <div class="mb-3">
+                            <label class="form-label">선택지</label>
+                            <div id="addOptionsContainer">
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">1</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 1">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">2</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 2">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">3</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 3">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">4</span>
+                                    <input type="text" name="options[]" class="form-control" placeholder="선택지 4">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">정답</label>
+                            <input type="text" name="correct_answer_objective" class="form-control" placeholder="정답을 입력하세요">
+                        </div>
+                    </div>
+                    
+                    <!-- 주관식 키워드 -->
+                    <div id="addKeywordsSection" style="display:none;">
+                        <div class.mb-3>
+                            <label class="form-label">정답 예시</label>
+                            <input type="text" name="correct_answer_subjective" class="form-control" placeholder="정답 예시를 입력하세요">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">채점 키워드 (쉼표로 구분)</label>
+                            <input type="text" name="keywords" class="form-control" placeholder="키워드1, 키워드2, 키워드3">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">추가</button>
+>>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
                 </div>
             </form>
         </div>
@@ -485,6 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+<<<<<<< HEAD
     // 문제 삭제 기능
     document.querySelectorAll('.delete-question').forEach(button => {
         button.addEventListener('click', function() {
@@ -492,20 +639,40 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('이 문제를 정말 삭제하시겠습니까? 삭제된 문제는 복구할 수 없습니다.')) {
                 fetch(`/admin/questions/delete/${questionId}`, {
                     method: 'DELETE'
+=======
+    // 문제 할당 해제 기능
+    document.querySelectorAll('.unassign-question').forEach(button => {
+        button.addEventListener('click', function() {
+            const questionId = this.dataset.id;
+            if (confirm('이 문제의 부서 할당을 해제하시겠습니까? 문제 자체는 삭제되지 않습니다.')) {
+                fetch(`/admin/questions/unassign/${questionId}`, {
+                    method: 'PUT'
+>>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+<<<<<<< HEAD
                         alert('문제가 삭제되었습니다.');
                         window.location.reload();
                     } else {
                         alert('삭제 실패: ' + data.message);
+=======
+                        alert('문제의 부서 할당이 해제되었습니다.');
+                        window.location.reload();
+                    } else {
+                        alert('해제 실패: ' + data.message);
+>>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
                     }
                 });
             }
         });
     });
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
     // 카테고리 및 부서 필터링 기능
     const categoryRadios = document.querySelectorAll('.category-radio');
     const departmentFilter = document.getElementById('departmentFilter');
