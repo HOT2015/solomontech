@@ -63,11 +63,7 @@ def admin_login():
     return render_template('admin_login.html', error=error)
 
 # 회사 정보 설정 (이미지 파일과 함께 사용)
-<<<<<<< HEAD
 app.config['COMPANY_NAME'] = '솔로몬텍 인적성 평가시스템'  # 회사명 (로고 이미지 파일명으로 변경 가능)
-=======
-app.config['COMPANY_NAME'] = '인적성 평가시스템'  # 회사명 (로고 이미지 파일명으로 변경 가능)
->>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
 app.config['COMPANY_DESCRIPTION'] = '기술 역량과 문제 해결력을 통합적으로 평가하는 온라인 시스템'  # 회사 설명
 app.config['COMPANY_LOGO'] = None  # 로고 이미지 파일명 (예: 'logo.png', 'company_logo.jpg' 등)
 
@@ -76,10 +72,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 데이터 매니저 초기화
 data_manager = DataManager()
-
-# 파일 업로드 관련 설정
-ALLOWED_EXTENSIONS = {'xlsx', 'docx'}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
 # 랜덤 설정 파일 경로
 RANDOM_CONFIG_FILE = os.path.join(BASE_DIR, 'data', 'random_config.json')
@@ -361,20 +353,10 @@ def question_manage():
     problem_solving_questions = questions_data.get("problem_solving_questions", [])
     departments = data_manager.load_departments()
     
-<<<<<<< HEAD
-=======
-    # 디버깅 로그 추가
-    print(f"기술 문제 수: {len(technical_questions)}")
-    print(f"문제해결 문제 수: {len(problem_solving_questions)}")
-    for q in technical_questions[:3]:  # 처음 3개만 로그
-        print(f"문제 {q.id}: department_ids = {getattr(q, 'department_ids', [])}")
-    
->>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
     # 부서별 문제 통계 계산
     department_stats = {}
     unassigned_count = 0
     
-<<<<<<< HEAD
     # 기술 문제 통계 계산
     for question in technical_questions:
         department_ids = getattr(question, 'department_ids', [])
@@ -389,13 +371,6 @@ def question_manage():
     # 문제해결 문제 통계 계산 (문제해결 문제는 딕셔너리 형태)
     for question in problem_solving_questions:
         department_ids = question.get('department_ids', [])
-=======
-    # 모든 문제를 하나의 리스트로 합치기
-    all_questions = technical_questions + problem_solving_questions
-    
-    for question in all_questions:
-        department_ids = getattr(question, 'department_ids', [])
->>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
         if not department_ids:
             unassigned_count += 1
         else:
@@ -414,12 +389,6 @@ def question_manage():
             'count': count
         })
     
-<<<<<<< HEAD
-=======
-    print(f"부서별 통계: {department_info}")
-    print(f"미지정 문제 수: {unassigned_count}")
-    
->>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
     return render_template('question_manage.html', 
                          technical_questions=technical_questions, 
                          problem_solving_questions=problem_solving_questions,
