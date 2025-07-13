@@ -8,10 +8,20 @@ from werkzeug.utils import secure_filename
 import tempfile
 import requests
 import json
-from transformers import pipeline
+
+# transformers 라이브러리 조건부 import (선택적 기능)
+try:
+    from transformers import pipeline
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
+    print("transformers 라이브러리가 설치되지 않았습니다. AI 기능이 비활성화됩니다.")
 
 app = Flask(__name__)
 app.secret_key = '인적성평가시스템_시크릿키_2024'  # 세션 관리를 위한 시크릿 키
+
+# 파일 업로드 관련 설정 (현재 사용되지 않지만 향후 확장을 위해 유지)
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'}
 
 # 관리자 인증 관련 상수
 ADMIN_SESSION_KEY = 'admin_authenticated'
@@ -984,22 +994,29 @@ def set_random_config():
     except Exception as e:
         return jsonify(success=False, message=f"저장 중 오류가 발생했습니다: {str(e)}"), 500
 
-# 로컬 LLM 파이프라인(최초 1회만 로드)
+# 로컬 LLM 파이프라인(최초 1회만 로드) - 조건부 처리
 local_llm = None
 
 def get_local_llm():
     global local_llm
+    if not TRANSFORMERS_AVAILABLE:
+        raise ImportError("transformers 라이브러리가 설치되지 않았습니다.")
     if local_llm is None:
         # 한글 특화 모델, 최초 실행 시 다운로드(수 분 소요)
         local_llm = pipeline("text-generation", model="beomi/KoAlpaca-Polyglot-5.8B", device_map="auto")
     return local_llm
 
 def generate_questions_with_local_llm(prompt):
-    llm = get_local_llm()
-    # max_new_tokens, temperature 등은 필요에 따라 조정
-    result = llm(prompt, max_new_tokens=256, do_sample=True, temperature=0.7)
-    # 결과에서 질문 부분만 추출
-    return result[0]['generated_text']
+    if not TRANSFORMERS_AVAILABLE:
+        return "AI 기능을 사용하려면 transformers 라이브러리를 설치해주세요."
+    try:
+        llm = get_local_llm()
+        # max_new_tokens, temperature 등은 필요에 따라 조정
+        result = llm(prompt, max_new_tokens=256, do_sample=True, temperature=0.7)
+        # 결과에서 질문 부분만 추출
+        return result[0]['generated_text']
+    except Exception as e:
+        return f"AI 질문 생성 중 오류가 발생했습니다: {str(e)}"
 
 @app.route('/api/candidate/<candidate_id>/generate_questions', methods=['POST'])
 def generate_candidate_questions(candidate_id):
@@ -1116,4 +1133,4 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
     migrate_questions_department_ids()  # 서버 실행 전 1회 마이그레이션
-    app.run(host="0.0.0.0", port=port) 
+    app.run(host="0.0.0.0", port=port, debug=True)  # 디버그 모드 활성화 

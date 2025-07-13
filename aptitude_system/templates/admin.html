@@ -1,11 +1,6 @@
 {% extends "base.html" %}
 
-<<<<<<< HEAD
 {% block title %}관리자 페이지 - 솔로몬텍 인적성 평가시스템{% endblock %}
-=======
-{% block title %}관리자 페이지 - 인적성 평가시스템{% endblock %}
->>>>>>> 28c1595f5ce87e439477856a549fee07cdccfb58
-
 {% block head %}
 <style>
 .question-list {
@@ -826,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 새로운 부서 옵션들 추가 (현재 부서 제외)
                 departments.forEach(dept => {
                     // 현재 부서는 제외하고 추가
-                    if (dept.id !== currentDeptId) {
+                    if (dept.id !== String(currentDeptId)) {
                         const option = document.createElement('option');
                         option.value = dept.id;
                         option.textContent = dept.name || '부서명 없음';
@@ -1053,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function getDepartmentName(departmentId) {
         // 부서 목록에서 해당 ID의 부서명 찾기
         const deptList = JSON.parse('{{ departments|tojson|safe }}');
-        const dept = deptList.find(d => d.id === departmentId);
+        const dept = deptList.find(d => d.id === String(departmentId));
         return dept ? dept.name : '알 수 없는 부서';
     }
 
@@ -1064,6 +1059,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const category = filterCategory.value;
         const questionsContainer = document.getElementById('assignQuestionsContainer');
         questionsContainer.innerHTML = ''; // 기존 문제 목록 초기화
+        
+        // 디버깅 정보 출력
+        console.log('renderQuestions 호출됨:', {
+            deptId: deptId,
+            filterDepartmentValue: filterDepartment.value,
+            type: type,
+            category: category,
+            totalQuestions: allQuestions.length
+        });
         
         // 필터 조건에 맞는 문제만 표시
         const filtered = allQuestions.filter(q => {
@@ -1077,14 +1081,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 deptMatch = (!q.department_ids || q.department_ids.length === 0);
             } else if (filterDepartment.value === 'current') {
                 // 현재 부서 필터: 해당 부서 문제만
-                deptMatch = (q.department_ids && q.department_ids.includes(deptId));
+                deptMatch = (q.department_ids && q.department_ids.includes(String(deptId)));
             } else {
                 // 특정 부서 필터: 해당 부서 문제만
-                deptMatch = (q.department_ids && q.department_ids.includes(filterDepartment.value));
+                deptMatch = (q.department_ids && q.department_ids.includes(String(filterDepartment.value)));
             }
             
             const typeMatch = !type || q.type === type;
             const categoryMatch = !category || q.category === category;
+            
+            // 디버깅: 첫 번째 문제의 필터링 결과 출력
+            if (allQuestions.indexOf(q) === 0) {
+                console.log('첫 번째 문제 필터링 결과:', {
+                    questionId: q.id,
+                    department_ids: q.department_ids,
+                    deptId: deptId,
+                    filterDepartmentValue: filterDepartment.value,
+                    deptMatch: deptMatch,
+                    typeMatch: typeMatch,
+                    categoryMatch: categoryMatch,
+                    finalResult: deptMatch && typeMatch && categoryMatch
+                });
+            }
+            
             return deptMatch && typeMatch && categoryMatch;
         });
         
@@ -1098,8 +1117,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 문제 카드 렌더링
         filtered.forEach((q, idx) => {
             const deptId = document.getElementById('assignDeptId').value;
-            const isAssigned = (q.department_ids && q.department_ids.includes(deptId));
-            const hasOtherDepartments = q.department_ids && q.department_ids.length > 0 && q.department_ids.some(id => id !== deptId);
+            const isAssigned = (q.department_ids && q.department_ids.includes(String(deptId)));
+            const hasOtherDepartments = q.department_ids && q.department_ids.length > 0 && q.department_ids.some(id => id !== String(deptId));
             const isOnlyOtherDepartments = hasOtherDepartments && !isAssigned; // 다른 부서에만 할당된 경우
             
             // 카드 스타일 결정
@@ -1127,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 다른 부서에 할당된 부서명들 표시
-            const otherDepartments = q.department_ids ? q.department_ids.filter(id => id !== deptId) : [];
+            const otherDepartments = q.department_ids ? q.department_ids.filter(id => id !== String(deptId)) : [];
             const otherDeptBadges = otherDepartments.map(id => `<span class="badge bg-info">${getDepartmentName(id)}</span>`).join('');
             
             const card = document.createElement('div');
