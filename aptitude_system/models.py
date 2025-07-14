@@ -209,14 +209,6 @@ class DataManager:
         self.results_file = os.path.join(self.data_folder, "results.json")
         self.questions_file = os.path.join(self.data_folder, "questions.json")
         self.departments_file = os.path.join(self.data_folder, "departments.json")
-        # 디버깅용 경로 출력
-        print("[DataManager 경로 확인]")
-        print(f"BASE_DIR: {BASE_DIR}")
-        print(f"data_folder: {self.data_folder}")
-        print(f"candidates_file: {self.candidates_file}")
-        print(f"results_file: {self.results_file}")
-        print(f"questions_file: {self.questions_file}")
-        print(f"departments_file: {self.departments_file}")
         self._ensure_data_files()
     
     def _ensure_data_files(self):
