@@ -102,6 +102,7 @@
                                             {% elif question.type == "주관식" %}
                                             <div class="mt-2">
                                                 <small class="text-success">정답 예시: {{ question.correct_answer }}</small>
+                                                {# 주관식 문제의 정답예시 항상 표시 #}
                                                 {% if question.keywords %}
                                                 <div class="mt-1">
                                                     <small class="text-muted">채점 키워드:</small>
@@ -167,6 +168,7 @@
                                             {% elif question.type == "주관식" %}
                                             <div class="mt-2">
                                                 <small class="text-success">정답 예시: {{ question.correct_answer }}</small>
+                                                {# 주관식 문제의 정답예시 항상 표시 #}
                                                 {% if question.keywords %}
                                                 <div class="mt-1">
                                                     <small class="text-muted">채점 키워드:</small>
