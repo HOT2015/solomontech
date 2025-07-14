@@ -3,7 +3,6 @@ from models import Candidate, Question, TestResult, DataManager, Department
 import os
 from datetime import datetime, timedelta, timezone
 import uuid
-from docx import Document
 from werkzeug.utils import secure_filename
 import tempfile
 import requests
