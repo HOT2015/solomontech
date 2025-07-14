@@ -561,7 +561,54 @@
           <form id="assignQuestionsForm">
             <input type="hidden" name="department_id" id="assignDeptId">
             <div id="assignQuestionsContainer">
-              <!-- JS로 문제 체크박스 렌더링 -->
+              <!-- 서버에서 직접 렌더링된 문제 목록 -->
+              {% for question in questions %}
+              <div class="question-item card mb-2" 
+                   data-category="{{ question.category }}" 
+                   data-type="{{ question.type }}" 
+                   data-difficulty="{{ question.difficulty }}" 
+                   data-department-ids="{{ question.department_ids | join(',') if question.department_ids else '' }}"
+                   data-question-id="{{ question.id }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">{{ question.question }}</h6>
+                            <p class="card-text small text-muted">
+                                <span class="badge bg-primary">{{ question.category }}</span>
+                                <span class="badge bg-secondary">{{ question.type }}</span>
+                                <span class="badge bg-info">{{ question.difficulty }}</span>
+                                <span class="badge bg-success">{{ question.points or '' }}점</span>
+                                <span class="badge bg-warning current-dept-badge" style="display:none;">현재 부서 할당됨</span>
+                                <span class="badge bg-info other-dept-badge" style="display:none;">다른 부서 문제</span>
+                                <span class="other-dept-names"></span>
+                            </p>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input question-checkbox" type="checkbox" value="{{ question.id }}" id="qcb_{{ question.id }}">
+                            <label class="form-check-label" for="qcb_{{ question.id }}">할당</label>
+                        </div>
+                    </div>
+                    {% if question.type == "객관식" %}
+                        <ul class="list-unstyled small text-muted mt-2">
+                            {% for option in question.options %}
+                            <li>{{ loop.index }}. {{ option }}</li>
+                            {% endfor %}
+                        </ul>
+                        <p class="small text-success mt-1">정답: {{ question.correct_answer }}</p>
+                    {% else %}
+                        <p class="small text-success mt-1">정답 예시: {{ question.correct_answer }}</p>
+                        {% if question.keywords and question.keywords|length > 0 %}
+                            <p class="small text-muted mt-1">채점 키워드:</p>
+                            <div class="ms-3">
+                                {% for keyword in question.keywords %}
+                                <span class="badge bg-light text-dark me-1">{{ keyword }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+              </div>
+              {% endfor %}
             </div>
           </form>
         </div>
@@ -891,7 +938,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 모달이 완전히 열린 후 부서 필터 옵션 업데이트 및 문제 렌더링
         setTimeout(() => {
             updateDepartmentFilterOptionsForModal(departmentId);
-            renderQuestions();
+            renderQuestions(); // 서버 렌더링된 문제 목록 필터링
             // 저장 버튼 이벤트 리스너 재등록
             attachSaveButtonListener();
         }, 100);
@@ -924,22 +971,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // 모든 체크박스 상태 확인
-        const allCheckboxes = document.querySelectorAll('.question-checkbox');
-        console.log('전체 체크박스 개수:', allCheckboxes.length);
+        // 보이는 체크박스들만 확인 (필터링된 문제들)
+        const visibleCheckboxes = document.querySelectorAll('#assignQuestionsContainer .question-item:not([style*="display: none"]) .question-checkbox');
+        console.log('보이는 체크박스 개수:', visibleCheckboxes.length);
         
-        // 선택된 문제 ID들 수집 (활성화된 체크박스 중에서만)
+        // 선택된 문제 ID들 수집 (보이는 체크박스 중에서만)
         const selectedQuestions = [];
-        allCheckboxes.forEach((checkbox, index) => {
+        visibleCheckboxes.forEach((checkbox, index) => {
             console.log(`체크박스 ${index}:`, {
                 id: checkbox.id,
                 value: checkbox.value,
-                checked: checkbox.checked,
-                disabled: checkbox.disabled
+                checked: checkbox.checked
             });
             
-            // 활성화된 체크박스 중에서 체크된 것만 수집
-            if (!checkbox.disabled && checkbox.checked) {
+            // 체크된 것만 수집
+            if (checkbox.checked) {
                 selectedQuestions.push(checkbox.value);
             }
         });
@@ -988,8 +1034,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 assignQuestionsModalInstance.hide();
                 // 부서 목록 업데이트
                 updateDepartmentList();
-                // 문제 데이터 다시 로드하여 실시간 업데이트
-                loadQuestionsData();
+                // 페이지 새로고침으로 문제 데이터 업데이트
+                window.location.reload();
             } else {
                 alert('문제 할당 실패: ' + (result.message || '알 수 없는 오류가 발생했습니다.'));
             }
@@ -1004,34 +1050,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =========================
-    // 문제할당 모달 문제 렌더링
+    // 문제할당 모달 문제 렌더링 (서버 렌더링 방식으로 변경)
     // =========================
-    // 모든 문제 데이터(백엔드에서 전달)
-    let allQuestions = [];
-    
-    // 문제 데이터 로드 함수
-    function loadQuestionsData() {
-        fetch('/api/questions')
-            .then(response => response.json())
-            .then(data => {
-                allQuestions = data;
-                console.log('문제 데이터 다시 로드됨:', allQuestions.length);
-                // 문제 목록 다시 렌더링
-                renderQuestions();
-            })
-            .catch(error => {
-                console.error('문제 데이터 로드 오류:', error);
-            });
-    }
-    
-    // 초기 문제 데이터 로드
-    try {
-        allQuestions = JSON.parse('{{ questions|tojson|safe }}');
-        console.log('초기 로드된 문제 수:', allQuestions.length);
-    } catch (error) {
-        console.error('문제 데이터 파싱 오류:', error);
-        allQuestions = [];
-    }
     
     // 모달 관련 요소들
     const assignQuestionsModal = document.getElementById('assignQuestionsModal');
@@ -1052,13 +1072,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return dept ? dept.name : '알 수 없는 부서';
     }
 
-    // 문제 리스트와 상세 표시 함수
+    // 문제 리스트 필터링 및 표시 함수 (DOM 기반)
     function renderQuestions() {
         const deptId = document.getElementById('assignDeptId').value;
         const type = filterType.value;
         const category = filterCategory.value;
-        const questionsContainer = document.getElementById('assignQuestionsContainer');
-        questionsContainer.innerHTML = ''; // 기존 문제 목록 초기화
+        const questionItems = document.querySelectorAll('#assignQuestionsContainer .question-item');
         
         // 디버깅 정보 출력
         console.log('renderQuestions 호출됨:', {
@@ -1066,11 +1085,17 @@ document.addEventListener('DOMContentLoaded', function() {
             filterDepartmentValue: filterDepartment.value,
             type: type,
             category: category,
-            totalQuestions: allQuestions.length
+            totalQuestions: questionItems.length
         });
         
-        // 필터 조건에 맞는 문제만 표시
-        const filtered = allQuestions.filter(q => {
+        let visibleCount = 0;
+        
+        // 각 문제 아이템을 필터링
+        questionItems.forEach((item, index) => {
+            const itemCategory = item.dataset.category;
+            const itemType = item.dataset.type;
+            const itemDepartments = item.dataset.departmentIds ? item.dataset.departmentIds.split(',') : [];
+            
             // 부서 필터 로직
             let deptMatch = true;
             if (filterDepartment.value === '') {
@@ -1078,23 +1103,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 deptMatch = true;
             } else if (filterDepartment.value === 'unassigned') {
                 // 미지정 필터: 미지정 문제만
-                deptMatch = (!q.department_ids || q.department_ids.length === 0);
+                deptMatch = (itemDepartments.length === 0 || (itemDepartments.length === 1 && itemDepartments[0] === ''));
             } else if (filterDepartment.value === 'current') {
                 // 현재 부서 필터: 해당 부서 문제만
-                deptMatch = (q.department_ids && q.department_ids.includes(String(deptId)));
+                deptMatch = itemDepartments.includes(String(deptId));
             } else {
                 // 특정 부서 필터: 해당 부서 문제만
-                deptMatch = (q.department_ids && q.department_ids.includes(String(filterDepartment.value)));
+                deptMatch = itemDepartments.includes(String(filterDepartment.value));
             }
             
-            const typeMatch = !type || q.type === type;
-            const categoryMatch = !category || q.category === category;
+            const typeMatch = !type || itemType === type;
+            const categoryMatch = !category || itemCategory === category;
             
             // 디버깅: 첫 번째 문제의 필터링 결과 출력
-            if (allQuestions.indexOf(q) === 0) {
+            if (index === 0) {
                 console.log('첫 번째 문제 필터링 결과:', {
-                    questionId: q.id,
-                    department_ids: q.department_ids,
+                    questionId: item.dataset.questionId,
+                    department_ids: itemDepartments,
                     deptId: deptId,
                     filterDepartmentValue: filterDepartment.value,
                     deptMatch: deptMatch,
@@ -1104,91 +1129,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            return deptMatch && typeMatch && categoryMatch;
+            // 필터 조건에 맞으면 표시, 아니면 숨김
+            if (deptMatch && typeMatch && categoryMatch) {
+                item.style.display = 'block';
+                visibleCount++;
+                
+                // 현재 부서 할당 상태에 따른 UI 업데이트
+                updateQuestionItemUI(item, deptId, itemDepartments);
+            } else {
+                item.style.display = 'none';
+            }
         });
         
         // 조회된 문제 개수 표시
-        document.getElementById('assignQuestionsCount').innerText = `조회된 문제: ${filtered.length}개`;
+        document.getElementById('assignQuestionsCount').innerText = `조회된 문제: ${visibleCount}개`;
+    }
+    
+    // 문제 아이템의 UI 상태 업데이트 (체크박스, 배지 등)
+    function updateQuestionItemUI(item, deptId, itemDepartments) {
+        const checkbox = item.querySelector('.question-checkbox');
+        const checkboxLabel = item.querySelector('.form-check-label');
+        const currentDeptBadge = item.querySelector('.current-dept-badge');
+        const otherDeptBadge = item.querySelector('.other-dept-badge');
+        const otherDeptNames = item.querySelector('.other-dept-names');
         
-        if (filtered.length === 0) {
-            questionsContainer.innerHTML = '<div class="text-muted">조건에 맞는 문제가 없습니다.</div>';
-            return;
+        const isAssigned = itemDepartments.includes(String(deptId));
+        const hasOtherDepartments = itemDepartments.length > 0 && itemDepartments.some(id => id !== String(deptId));
+        const isOnlyOtherDepartments = hasOtherDepartments && !isAssigned;
+        
+        // 체크박스 상태 설정
+        if (isAssigned) {
+            checkbox.checked = true;
+            checkboxLabel.textContent = '할당됨';
+            currentDeptBadge.style.display = 'inline';
+            otherDeptBadge.style.display = 'none';
+        } else if (isOnlyOtherDepartments) {
+            checkbox.checked = false;
+            checkboxLabel.textContent = '다른 부서 문제 (할당 가능)';
+            currentDeptBadge.style.display = 'none';
+            otherDeptBadge.style.display = 'inline';
+        } else {
+            checkbox.checked = false;
+            checkboxLabel.textContent = '할당';
+            currentDeptBadge.style.display = 'none';
+            otherDeptBadge.style.display = 'none';
         }
-        // 문제 카드 렌더링
-        filtered.forEach((q, idx) => {
-            const deptId = document.getElementById('assignDeptId').value;
-            const isAssigned = (q.department_ids && q.department_ids.includes(String(deptId)));
-            const hasOtherDepartments = q.department_ids && q.department_ids.length > 0 && q.department_ids.some(id => id !== String(deptId));
-            const isOnlyOtherDepartments = hasOtherDepartments && !isAssigned; // 다른 부서에만 할당된 경우
-            
-            // 카드 스타일 결정
-            let cardClass = 'card mb-2';
-            if (isAssigned) {
-                cardClass += ' bg-light';
-            }
-            if (isOnlyOtherDepartments) {
-                cardClass += ' border-info';
-            }
-            
-            // 체크박스 상태 결정
-            let checkboxChecked = '';
-            let checkboxDisabled = '';
-            let checkboxLabel = '할당';
-            
-            if (isAssigned) {
-                // 현재 부서에 할당된 경우: 체크박스 활성화, 체크됨
-                checkboxChecked = 'checked';
-                checkboxLabel = '할당됨';
-            } else if (isOnlyOtherDepartments) {
-                // 다른 부서에만 할당된 경우: 체크박스 활성화, 체크 안됨 (할당 가능)
-                checkboxChecked = '';
-                checkboxLabel = '다른 부서 문제 (할당 가능)';
-            }
-            
-            // 다른 부서에 할당된 부서명들 표시
-            const otherDepartments = q.department_ids ? q.department_ids.filter(id => id !== String(deptId)) : [];
-            const otherDeptBadges = otherDepartments.map(id => `<span class="badge bg-info">${getDepartmentName(id)}</span>`).join('');
-            
-            const card = document.createElement('div');
-            card.className = cardClass;
-            card.innerHTML = `
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title mb-1">${q.question}</h6>
-                            <p class="card-text small text-muted">
-                                <span class="badge bg-primary">${q.category}</span>
-                                <span class="badge bg-secondary">${q.type}</span>
-                                <span class="badge bg-info">${q.difficulty}</span>
-                                <span class="badge bg-success">${q.points || ''}점</span>
-                                ${isAssigned ? '<span class="badge bg-warning">현재 부서 할당됨</span>' : ''}
-                                ${isOnlyOtherDepartments ? '<span class="badge bg-info">다른 부서 문제</span>' : ''}
-                                ${otherDeptBadges}
-                            </p>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input question-checkbox" type="checkbox" value="${q.id}" id="qcb_${q.id}" ${checkboxChecked} ${checkboxDisabled}>
-                            <label class="form-check-label" for="qcb_${q.id}">${checkboxLabel}</label>
-                        </div>
-                    </div>
-                    ${q.type === '객관식' ? `
-                        <ul class="list-unstyled small text-muted mt-2">
-                            ${q.options ? q.options.map((opt, i) => `<li>${i+1}. ${opt}</li>`).join('') : ''}
-                        </ul>
-                        <p class="small text-success mt-1">정답: ${q.correct_answer}</p>
-                    ` : `
-                        <p class="small text-success mt-1">정답 예시: ${q.correct_answer}</p>
-                        ${q.keywords && q.keywords.length > 0 ? `
-                            <p class="small text-muted mt-1">채점 키워드:</p>
-                            <div class="ms-3">
-                                ${q.keywords.map(kw => `<span class="badge bg-light text-dark me-1">${kw}</span>`).join('')}
-                            </div>
-                        ` : ''}
-                    `}
-                </div>
-            `;
-            questionsContainer.appendChild(card);
-        });
+        
+        // 다른 부서 배지 업데이트
+        const otherDepartments = itemDepartments.filter(id => id !== String(deptId));
+        if (otherDepartments.length > 0) {
+            const otherDeptBadges = otherDepartments.map(id => 
+                `<span class="badge bg-info">${getDepartmentName(id)}</span>`
+            ).join('');
+            otherDeptNames.innerHTML = otherDeptBadges;
+        } else {
+            otherDeptNames.innerHTML = '';
+        }
     }
 
     // 초기 부서 목록 업데이트 (부서 필터 옵션 초기화)
@@ -1206,18 +1202,19 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('모달 닫기 버튼 클릭됨');
         });
     });
-    // 필터 변경 시 렌더링
+    
+    // 필터 변경 시 렌더링 (서버 렌더링된 DOM 기반)
     filterDepartment.addEventListener('change', renderQuestions);
     filterType.addEventListener('change', renderQuestions);
     filterCategory.addEventListener('change', renderQuestions);
     // 전체선택/전체해제
     selectAllBtn.addEventListener('click', function() {
-        // 활성화된 체크박스만 선택
-        document.querySelectorAll('.question-checkbox:not(:disabled)').forEach(cb => cb.checked = true);
+        // 보이는 체크박스만 선택 (필터링된 문제들)
+        document.querySelectorAll('#assignQuestionsContainer .question-item:not([style*="display: none"]) .question-checkbox').forEach(cb => cb.checked = true);
     });
     deselectAllBtn.addEventListener('click', function() {
-        // 활성화된 체크박스만 해제
-        document.querySelectorAll('.question-checkbox:not(:disabled)').forEach(cb => cb.checked = false);
+        // 보이는 체크박스만 해제 (필터링된 문제들)
+        document.querySelectorAll('#assignQuestionsContainer .question-item:not([style*="display: none"]) .question-checkbox').forEach(cb => cb.checked = false);
     });
 
 

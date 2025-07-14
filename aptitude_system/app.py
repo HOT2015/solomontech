@@ -318,11 +318,23 @@ def admin():
     results = data_manager.get_all_results()
     departments = data_manager.load_departments()
     departments_dict = [dept.to_dict() for dept in departments]
+    
+    # 모든 문제 로드 (기술 문제 + 문제해결 문제)
     all_questions = []
-    questions = data_manager.load_questions()
-    for q in questions:
+    
+    # 기술 문제 로드
+    technical_questions = data_manager.load_questions()
+    for q in technical_questions:
         all_questions.append(q.to_dict())
+    
+    # 문제해결 문제 로드
+    questions_data = data_manager._load_json(data_manager.questions_file)
+    problem_solving_questions = questions_data.get("problem_solving_questions", [])
+    for q in problem_solving_questions:
+        all_questions.append(q)
+    
     unassigned_questions = [q for q in all_questions if not q.get('department_ids') or len(q.get('department_ids', [])) == 0]
+    
     for c in candidates:
         if c.created_at:
             try:
@@ -578,19 +590,44 @@ def logout():
 @app.route('/api/questions')
 def api_questions():
     """문제 데이터 API"""
-    questions = data_manager.load_questions()
-    return jsonify([{
-        'id': q.id,
-        'category': q.category,
-        'type': q.type,
-        'difficulty': q.difficulty,
-        'question': q.question,
-        'options': q.options,
-        'correct_answer': q.correct_answer,
-        'keywords': q.keywords,
-        'points': q.points,
-        'department_ids': getattr(q, 'department_ids', [])
-    } for q in questions])
+    all_questions = []
+    
+    # 기술 문제 로드
+    technical_questions = data_manager.load_questions()
+    for q in technical_questions:
+        all_questions.append({
+            'id': q.id,
+            'category': q.category,
+            'type': q.type,
+            'difficulty': q.difficulty,
+            'question': q.question,
+            'options': q.options,
+            'correct_answer': q.correct_answer,
+            'keywords': q.keywords,
+            'points': q.points,
+            # department_ids를 항상 문자열 배열로 변환
+            'department_ids': [str(did) for did in getattr(q, 'department_ids', [])]
+        })
+    
+    # 문제해결 문제 로드
+    questions_data = data_manager._load_json(data_manager.questions_file)
+    problem_solving_questions = questions_data.get("problem_solving_questions", [])
+    for q in problem_solving_questions:
+        all_questions.append({
+            'id': q['id'],
+            'category': q['category'],
+            'type': q['type'],
+            'difficulty': q['difficulty'],
+            'question': q['question'],
+            'options': q.get('options', []),
+            'correct_answer': q['correct_answer'],
+            'keywords': q.get('keywords', []),
+            'points': q['points'],
+            # department_ids를 항상 문자열 배열로 변환
+            'department_ids': [str(did) for did in q.get('department_ids', [])]
+        })
+    
+    return jsonify(all_questions)
 
 @app.route('/api/departments')
 def api_departments():
