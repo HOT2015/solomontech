@@ -226,14 +226,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block scripts %}
-    <script>
-    // 5분마다 서버에 핑을 보내 연결 유지
-    setInterval(function() {
-        fetch('/api/ping').then(() => {
-            // 성공 시 아무 동작 필요 없음
-        });
-    }, 300000); // 5분(300,000ms)
-    </script>
     {% endblock %}
 </body>
 </html> 

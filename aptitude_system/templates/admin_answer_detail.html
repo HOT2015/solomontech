@@ -168,6 +168,12 @@
                     <div class="mb-2">
                         <strong>작성 답안:</strong> {{ item.answer }}
                     </div>
+                    {# 주관식 정답 예시 표시 #}
+                    {% if item.question.correct_answer %}
+                    <div class="mb-2">
+                        <strong class="text-success">정답 예시:</strong> {{ item.question.correct_answer }}
+                    </div>
+                    {% endif %}
                     {% if item.question.keywords %}
                     <div class="mb-2">
                         <strong>채점 키워드:</strong>

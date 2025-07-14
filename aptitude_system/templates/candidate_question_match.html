@@ -92,13 +92,19 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="border rounded p-2 mb-2 bg-light">
-                        <h6 class="mb-2 text-success">현재 매칭된 문제 <span id="matched-count" class="fw-normal"></span></h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-2 text-success mb-0">현재 매칭된 문제 <span id="matched-count" class="fw-normal"></span></h6>
+                            <button id="remove-matching-btn" class="btn btn-outline-danger btn-sm ms-2" disabled style="min-width:90px;">매칭 해제</button>
+                        </div>
                         <div id="matched-questions"></div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="border rounded p-2 mb-2 bg-white">
-                        <h6 class="mb-2 text-secondary">매칭되지 않은 문제 <span id="unmatched-count" class="fw-normal"></span></h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-2 text-secondary mb-0">매칭되지 않은 문제 <span id="unmatched-count" class="fw-normal"></span></h6>
+                            <button id="add-matching-btn" class="btn btn-outline-primary btn-sm ms-2" disabled style="min-width:90px;">매칭 추가</button>
+                        </div>
                         <div id="unmatched-questions"></div>
                     </div>
                 </div>
@@ -120,6 +126,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const unmatchedDiv = document.getElementById('unmatched-questions');
     const categoryFilter = document.getElementById('category-filter');
     const departmentFilter = document.getElementById('department-filter');
+    // 버튼 DOM을 미리 가져옴
+    const removeBtn = document.getElementById('remove-matching-btn');
+    const addBtn = document.getElementById('add-matching-btn');
 
     // 모든 문제 정보 수집 (템플릿에서 데이터로 전달)
     allQuestions = {{ questions|tojson }};
@@ -154,27 +163,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 return a.question.localeCompare(b.question);
             });
         }
-        matchedDiv.innerHTML = matched.length ? matched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" checked id="match-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="match-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}</label></div>`).join('') : '<div class="text-muted">매칭된 문제가 없습니다.</div>';
-        unmatchedDiv.innerHTML = unmatched.length ? unmatched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="unmatch-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="unmatch-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}</label></div>`).join('') : '<div class="text-muted">매칭되지 않은 문제가 없습니다.</div>';
+        matchedDiv.innerHTML = matched.length ? matched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="match-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="match-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭된 문제가 없습니다.</div>';
+        unmatchedDiv.innerHTML = unmatched.length ? unmatched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="unmatch-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="unmatch-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭되지 않은 문제가 없습니다.</div>';
         document.getElementById('matched-count').textContent = `(${matched.length}문제)`;
         document.getElementById('unmatched-count').textContent = `(${unmatched.length}문제)`;
-        // 이벤트 바인딩
-        matchedDiv.querySelectorAll('input[type=checkbox]').forEach(cb => {
-            cb.addEventListener('change', function() {
-                if (!this.checked) {
-                    selectedQuestions = selectedQuestions.filter(id => id !== this.dataset.qid);
-                    renderQuestions();
-                }
-            });
-        });
-        unmatchedDiv.querySelectorAll('input[type=checkbox]').forEach(cb => {
-            cb.addEventListener('change', function() {
-                if (this.checked) {
-                    selectedQuestions.push(this.dataset.qid);
-                    renderQuestions();
-                }
-            });
-        });
+        // 체크박스 선택 시 버튼 활성화
+        removeBtn.disabled = matchedDiv.querySelectorAll('input[type=checkbox]:checked').length === 0;
+        addBtn.disabled = unmatchedDiv.querySelectorAll('input[type=checkbox]:checked').length === 0;
     }
 
     // 지원자 목록이 있을 때만 이벤트 리스너 추가
@@ -222,6 +217,18 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error:', error);
             alert('저장 중 오류가 발생했습니다.');
         });
+    });
+
+    // 버튼 이벤트 바인딩은 여기서 한 번만!
+    removeBtn.addEventListener('click', function() {
+        const checked = Array.from(document.querySelectorAll('#matched-questions input[type=checkbox]:checked')).map(cb => cb.dataset.qid);
+        selectedQuestions = selectedQuestions.filter(id => !checked.includes(id));
+        renderQuestions();
+    });
+    addBtn.addEventListener('click', function() {
+        const checked = Array.from(document.querySelectorAll('#unmatched-questions input[type=checkbox]:checked')).map(cb => cb.dataset.qid);
+        selectedQuestions = selectedQuestions.concat(checked.filter(id => !selectedQuestions.includes(id)));
+        renderQuestions();
     });
 });
 </script>

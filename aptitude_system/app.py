@@ -165,6 +165,10 @@ def register():
                 return render_template('register.html', error="접속 가능 날짜가 설정되지 않았습니다. 관리자에게 문의하세요.")
             if matched.access_date != today:
                 return render_template('register.html', error=f"오늘({today})은 접속 가능 날짜가 아닙니다. (응시 가능일: {matched.access_date})")
+            # 이미 평가를 완료했는지 확인
+            existing_result = data_manager.get_result(matched.id)
+            if existing_result:
+                return render_template('register.html', error="이미 응시한 지원자는 재응시가 불가합니다.")
             # 부서 미지정 지원자라면 기본 부서 할당
             if not matched.department_id:
                 matched.department_id = 'dept_1'
@@ -172,7 +176,6 @@ def register():
             # 세션에 지원자 정보 저장
             session['candidate_id'] = matched.id
             session['candidate_name'] = matched.name
-            # 지원자 데이터에 이메일과 핸드폰번호 업데이트 코드 제거
             return redirect(url_for('test_start'))
         else:
             return render_template('register.html', error="이름을 입력해주세요.")
@@ -278,7 +281,7 @@ def submit_answers():
     # 세션 정리
     session.pop('technical_answers', None)
     session.pop('current_step', None)
-    return redirect(url_for('result'))
+    return redirect(url_for('index'))  # base.html로 이동
 
 @app.route('/result')
 def result():
@@ -737,6 +740,36 @@ def add_candidate():
     
     # Candidate 생성 시 'test_deadline' 인자 없음
     candidate = Candidate(name=name, access_date=access_date, test_duration=int(test_duration))
+    # ------------------- 랜덤 문제 즉시 할당 -------------------
+    # 부서 미지정 시 기본 부서 할당
+    if not candidate.department_id:
+        candidate.department_id = 'dept_1'
+    all_questions = data_manager.load_questions()
+    department_questions = [q for q in all_questions if candidate.department_id in q.department_ids]
+    # 카테고리별 문제 분류
+    java_mc = [q for q in department_questions if q.category == 'Java' and q.type == '객관식']
+    java_sub = [q for q in department_questions if q.category == 'Java' and q.type == '주관식']
+    db_mc = [q for q in department_questions if q.category == 'Database' and q.type == '객관식']
+    db_sub = [q for q in department_questions if q.category == 'Database' and q.type == '주관식']
+    ps_mc = [q for q in department_questions if q.category == '문제해결' and q.type == '객관식']
+    # 출제 개수 설정값 적용
+    random_config = load_random_config()
+    java_mc_count = random_config.get('java_mc_count', 0)
+    java_sub_count = random_config.get('java_sub_count', 0)
+    db_mc_count = random_config.get('db_mc_count', 0)
+    db_sub_count = random_config.get('db_sub_count', 0)
+    ps_mc_count = random_config.get('ps_mc_count', 0)
+    import random
+    selected_java_mc = random.sample(java_mc, min(len(java_mc), java_mc_count))
+    selected_java_sub = random.sample(java_sub, min(len(java_sub), java_sub_count))
+    selected_db_mc = random.sample(db_mc, min(len(db_mc), db_mc_count))
+    selected_db_sub = random.sample(db_sub, min(len(db_sub), db_sub_count))
+    selected_ps_mc = random.sample(ps_mc, min(len(ps_mc), ps_mc_count))
+    selected_ids = ([q.id for q in selected_java_mc] + [q.id for q in selected_java_sub] + 
+                   [q.id for q in selected_db_mc] + [q.id for q in selected_db_sub] + 
+                   [q.id for q in selected_ps_mc])
+    candidate.selected_questions = selected_ids
+    # --------------------------------------------------------
     data_manager.save_candidate(candidate)
     
     return jsonify(success=True, message="지원자가 등록되었습니다.", candidate=candidate.to_dict())

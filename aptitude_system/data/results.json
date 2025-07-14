@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "candidate_id": "6ef01da9-b856-4d3e-8cb3-9082cc546f81",
+    "test_date": "2025-07-14 17:30:29",
+    "answers": {
+      "java_mc_basic_19": "import",
+      "java_mc_inter_02": "메모리 절약",
+      "java_sa_inter_03": "",
+      "java_sa_inter_10": "",
+      "db_sa_basic_08": "",
+      "db_sa_inter_09": ""
+    },
+    "scores": {
+      "technical": 0,
+      "problem_solving": 0
+    },
+    "total_score": 0,
+    "rank": 1
+  }
+]
