@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "id": "f387066f-2a04-4f8b-a040-3044206e9e87",
+    "name": "김명중",
+    "email": "",
+    "phone": "",
+    "created_at": "2025-07-14T16:02:05.771870",
+    "access_date": "2025-07-14",
+    "test_duration": 10,
+    "selected_questions": [
+      "java_mc_inter_12",
+      "java_mc_inter_13",
+      "java_mc_basic_06",
+      "java_sa_inter_02",
+      "java_sa_basic_03",
+      "db_mc_inter_11",
+      "db_mc_inter_20",
+      "db_mc_inter_01",
+      "db_sa_inter_01",
+      "db_sa_basic_09"
+    ],
+    "department_id": "dept_1"
+  }
+]

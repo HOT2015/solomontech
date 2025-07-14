@@ -88,17 +88,7 @@
                         <div class="text-muted mt-2">
                             <small>
                                 <i class="fas fa-star"></i> 배점: {{ question.points }}점
-                                {% if question.type == "주관식" %}
-                                {% if question.correct_answer %}
-                                <br><i class="fas fa-lightbulb"></i> 정답 예시: <span class="text-success">{{ question.correct_answer }}</span>
-                                {% endif %}
-                                {% if question.keywords %}
-                                <br><i class="fas fa-key"></i> 키워드: 
-                                {% for keyword in question.keywords %}
-                                <span class="badge bg-light text-dark me-1">{{ keyword }}</span>
-                                {% endfor %}
-                                {% endif %}
-                                {% endif %}
+                                {# 주관식일 때 정답예시/키워드 숨김, 배점만 표시 #}
                             </small>
                         </div>
                     </div>
@@ -126,12 +116,14 @@ let extraSeconds = 30;
 let timerInterval = null;
 let extraTimerStarted = false;
 
+// 타이머 표시 함수: 기존 #timer의 innerHTML 전체를 갱신
 function updateTimerDisplay(seconds) {
     const min = Math.floor(seconds / 60);
     const sec = seconds % 60;
-    document.getElementById('timer').textContent = `${min}분 ${sec < 10 ? '0' : ''}${sec}초`;
+    document.getElementById('timer').innerHTML = `<i class="fas fa-clock"></i> 남은 시간: <span id="timeLeft">${min}:${sec < 10 ? '0' : ''}${sec}</span>`;
 }
 
+// 타이머 시작 함수 (한 번만 실행)
 function startTimer() {
     updateTimerDisplay(totalSeconds);
     timerInterval = setInterval(() => {
@@ -152,12 +144,10 @@ function startTimer() {
     }, 1000);
 }
 
+// DOMContentLoaded에서 startTimer() 한 번만 실행
+// timerDiv를 새로 만들지 않고, 기존 #timer를 그대로 사용
+
 document.addEventListener('DOMContentLoaded', function() {
-    // 타이머 표시 영역 생성
-    const timerDiv = document.createElement('div');
-    timerDiv.id = 'timer';
-    timerDiv.className = 'timer mb-3';
-    document.querySelector('.card-body').prepend(timerDiv);
     startTimer();
 });
 
