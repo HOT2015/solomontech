@@ -4,6 +4,12 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import os
 
+# BASE_DIR: models.py가 아닌 app.py 기준의 절대경로를 사용
+try:
+    from app import BASE_DIR
+except ImportError:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 class Candidate:
     """지원자 정보를 관리하는 클래스"""
     
@@ -197,7 +203,8 @@ class DataManager:
     """데이터 관리를 담당하는 클래스"""
     
     def __init__(self):
-        self.data_folder = "data"
+        # 항상 app.py 기준의 절대경로로 data 폴더 지정
+        self.data_folder = os.path.join(BASE_DIR, "data")
         self.candidates_file = os.path.join(self.data_folder, "candidates.json")
         self.results_file = os.path.join(self.data_folder, "results.json")
         self.questions_file = os.path.join(self.data_folder, "questions.json")
