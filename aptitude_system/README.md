@@ -143,7 +143,7 @@ requests==2.31.0
 ### 5.1 지원자 관련
 - `GET /` - 메인 페이지
 - `GET /register` - 지원자 등록 페이지
-- `POST /register` - 지원자 등록 처리
+- `POST /register` - 지원자 등록 처리 (이름만 입력)
 - `GET /test/start` - 평가 시작 페이지
 - `GET /test/technical` - 기술 문제 평가
 - `GET /test/problem_solving` - 문제해결력 평가

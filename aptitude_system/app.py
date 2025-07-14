@@ -151,9 +151,7 @@ def register():
     """지원자 등록 페이지"""
     if request.method == 'POST':
         name = request.form.get('name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        if name and email and phone:
+        if name:
             candidates = data_manager.get_all_candidates()
             matched = None
             for candidate in candidates:
@@ -174,13 +172,10 @@ def register():
             # 세션에 지원자 정보 저장
             session['candidate_id'] = matched.id
             session['candidate_name'] = matched.name
-            session['candidate_email'] = email
-            session['candidate_phone'] = phone
-            # 지원자 데이터에 이메일과 핸드폰번호 업데이트
-            data_manager.update_candidate_contact_info(matched.id, email, phone)
+            # 지원자 데이터에 이메일과 핸드폰번호 업데이트 코드 제거
             return redirect(url_for('test_start'))
         else:
-            return render_template('register.html', error="이름, 이메일, 핸드폰번호를 모두 입력해주세요.")
+            return render_template('register.html', error="이름을 입력해주세요.")
     return render_template('register.html')
 
 @app.route('/test/start')
