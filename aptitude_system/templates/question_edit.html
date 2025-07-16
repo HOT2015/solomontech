@@ -38,14 +38,12 @@
                                 <div class="mb-3">
                                     <label class="form-label">카테고리</label>
                                     <div>
+                                        {% for cat in category_list %}
                                         <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="category" id="editCategoryJava" value="Java" {% if question.category == "Java" %}checked{% endif %} required>
-                                            <label class="form-check-label" for="editCategoryJava">Java</label>
+                                            <input class="form-check-input" type="radio" name="category" id="editCategory_{{ cat }}" value="{{ cat }}" {% if question.category == cat %}checked{% endif %} required>
+                                            <label class="form-check-label" for="editCategory_{{ cat }}">{{ cat }}</label>
                                         </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="category" id="editCategoryDatabase" value="Database" {% if question.category == "Database" %}checked{% endif %}>
-                                            <label class="form-check-label" for="editCategoryDatabase">Database</label>
-                                        </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>

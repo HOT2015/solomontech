@@ -133,6 +133,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // 모든 문제 정보 수집 (템플릿에서 데이터로 전달)
     allQuestions = {{ questions|tojson }};
 
+    function bindCheckboxEvents() {
+        // 매칭된 문제 체크박스
+        matchedDiv.querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                removeBtn.disabled = matchedDiv.querySelectorAll('input[type=checkbox]:checked').length === 0;
+            });
+        });
+        // 매칭되지 않은 문제 체크박스
+        unmatchedDiv.querySelectorAll('input[type=checkbox]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                addBtn.disabled = unmatchedDiv.querySelectorAll('input[type=checkbox]:checked').length === 0;
+            });
+        });
+    }
+
     function renderQuestions() {
         const cat = categoryFilter.value;
         const dept = departmentFilter.value;
@@ -163,13 +178,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 return a.question.localeCompare(b.question);
             });
         }
-        matchedDiv.innerHTML = matched.length ? matched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="match-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="match-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭된 문제가 없습니다.</div>';
-        unmatchedDiv.innerHTML = unmatched.length ? unmatched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="unmatch-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="unmatch-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭되지 않은 문제가 없습니다.</div>';
+        matchedDiv.innerHTML = matched.length ? matched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="match-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="match-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><span class='badge bg-info ms-1'>${q.difficulty}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭된 문제가 없습니다.</div>';
+        unmatchedDiv.innerHTML = unmatched.length ? unmatched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="unmatch-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="unmatch-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><span class='badge bg-info ms-1'>${q.difficulty}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭되지 않은 문제가 없습니다.</div>';
         document.getElementById('matched-count').textContent = `(${matched.length}문제)`;
         document.getElementById('unmatched-count').textContent = `(${unmatched.length}문제)`;
         // 체크박스 선택 시 버튼 활성화
         removeBtn.disabled = matchedDiv.querySelectorAll('input[type=checkbox]:checked').length === 0;
         addBtn.disabled = unmatchedDiv.querySelectorAll('input[type=checkbox]:checked').length === 0;
+        // 체크박스 이벤트 바인딩
+        bindCheckboxEvents();
     }
 
     // 지원자 목록이 있을 때만 이벤트 리스너 추가

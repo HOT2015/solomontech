@@ -564,18 +564,25 @@ def delete_question(question_id):
 def edit_question_page(question_id):
     """문제 편집 페이지"""
     questions_data = data_manager._load_json(data_manager.questions_file)
-    
+    departments = data_manager.load_departments()  # 부서 리스트 추가
+    # 카테고리 목록 동적 추출
+    category_set = set()
+    for q in questions_data.get('technical_questions', []):
+        if q.get('category'):
+            category_set.add(q['category'])
+    for q in questions_data.get('problem_solving_questions', []):
+        if q.get('category'):
+            category_set.add(q['category'])
+    category_list = sorted(category_set)
     # 기술 문제에서 찾기
     for question in questions_data["technical_questions"]:
         if question['id'] == question_id:
-            return render_template('question_edit.html', question=question)
-    
+            return render_template('question_edit.html', question=question, departments=departments, category_list=category_list)
     # 문제해결 문제에서 찾기
     problem_solving_questions = questions_data.get("problem_solving_questions", [])
     for question in problem_solving_questions:
         if question['id'] == question_id:
-            return render_template('question_edit.html', question=question)
-    
+            return render_template('question_edit.html', question=question, departments=departments, category_list=category_list)
     return redirect(url_for('question_manage'))
 
 @app.route('/logout')

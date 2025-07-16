@@ -22,6 +22,7 @@
                 <a href="{{ url_for('admin') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> 관리자 페이지로
                 </a>
+                <button id="bulkDeleteBtn" class="btn btn-danger ms-2" disabled><i class="fas fa-trash"></i> 선택 삭제</button>
             </div>
 
             <!-- 문제 목록 -->
@@ -71,8 +72,11 @@
                             {% for question in technical_questions %}
                             <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}" data-department-ids="{{ question.department_ids | join(',') if question.department_ids else '' }}">
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-8">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <input type="checkbox" class="form-check-input question-checkbox" value="{{ question.id }}">
+                                        </div>
+                                        <div class="col">
                                             <h6 class="card-title">{{ question.question }}</h6>
                                             <div class="question-meta">
                                                 <span class="badge bg-primary">{{ question.category }}</span>
@@ -116,7 +120,7 @@
                                             </div>
                                             {% endif %}
                                         </div>
-                                        <div class="col-md-4 text-end">
+                                        <div class="col-md-2 text-end">
                                             <a href="{{ url_for('edit_question_page', question_id=question.id) }}" class="btn btn-sm btn-outline-primary edit-question" data-id="{{ question.id }}">
                                                 <i class="fas fa-edit"></i> 수정
                                             </a>
@@ -137,8 +141,11 @@
                             {% for question in problem_solving_questions %}
                             <div class="question-item card mb-2" data-category="{{ question.category }}" data-type="{{ question.type }}" data-difficulty="{{ question.difficulty }}" data-department-ids="{{ question.department_ids | join(',') if question.department_ids else '' }}">
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-8">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <input type="checkbox" class="form-check-input question-checkbox" value="{{ question.id }}">
+                                        </div>
+                                        <div class="col">
                                             <h6 class="card-title">{{ question.question }}</h6>
                                             <div class="question-meta">
                                                 <span class="badge bg-primary">{{ question.category }}</span>
@@ -182,7 +189,7 @@
                                             </div>
                                             {% endif %}
                                         </div>
-                                        <div class="col-md-4 text-end">
+                                        <div class="col-md-2 text-end">
                                             <a href="{{ url_for('edit_question_page', question_id=question.id) }}" class="btn btn-sm btn-outline-primary edit-question" data-id="{{ question.id }}">
                                                 <i class="fas fa-edit"></i> 수정
                                             </a>
@@ -413,6 +420,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 문제 유형(객관식/주관식) 선택에 따른 UI 변경 (문제 추가 팝업)
     const addQuestionForm = document.getElementById('addQuestionForm');
+    if (!addQuestionForm) return; // 폼이 없으면 JS 실행 중단
     const addTypeRadios = addQuestionForm.querySelectorAll('input[name="type"]');
     const addOptionsSection = document.getElementById('addOptionsSection');
     const addKeywordsSection = document.getElementById('addKeywordsSection');
@@ -462,6 +470,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (key === 'options[]') {
                 if (!data.options) data.options = [];
                 data.options.push(value);
+            } else if (key === 'correct_answer_objective' || key === 'correct_answer_subjective') {
+                // 객관식/주관식 모두 서버에 'correct_answer'로 보냄
+                data['correct_answer'] = value;
             } else {
                 data[key] = value;
             }
@@ -547,6 +558,42 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 페이지 로드 시 초기 필터링 및 개수 계산
     filterQuestions();
+
+    // 일괄 삭제 기능 (여러 문제를 순차적으로 삭제)
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const allCheckboxes = document.querySelectorAll('.question-checkbox');
+    function updateBulkDeleteBtn() {
+        const checked = document.querySelectorAll('.question-checkbox:checked');
+        bulkDeleteBtn.disabled = checked.length === 0;
+    }
+    allCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateBulkDeleteBtn);
+    });
+    bulkDeleteBtn.addEventListener('click', async function() {
+        const checked = Array.from(document.querySelectorAll('.question-checkbox:checked'));
+        if (checked.length === 0) return;
+        if (!confirm(`선택한 ${checked.length}개의 문제를 정말 삭제하시겠습니까? 삭제된 문제는 복구할 수 없습니다.`)) return;
+        let deleted = 0;
+        let failed = 0;
+        // 순차적으로 삭제 요청
+        for (const cb of checked) {
+            const qid = cb.value;
+            try {
+                const res = await fetch(`/admin/questions/delete/${qid}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) deleted++;
+                else failed++;
+            } catch (e) {
+                failed++;
+            }
+        }
+        if (failed === 0) {
+            alert('선택한 문제가 모두 삭제되었습니다.');
+        } else {
+            alert(`일부 문제 삭제 실패(${failed}건)`);
+        }
+        window.location.reload();
+    });
 
 });
 </script>
