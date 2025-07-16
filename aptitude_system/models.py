@@ -73,7 +73,7 @@ class Department:
 class Question:
     """문제 정보를 관리하는 클래스"""
     
-    def __init__(self, id, category, type, difficulty, question, options=None, correct_answer=None, keywords=None, points=1, department_ids=None):
+    def __init__(self, id, category, type, difficulty, question, options=None, correct_answer=None, keywords=None, points=1, department_ids=None, sql=None, description=None):
         self.id = id
         self.category = category
         self.type = type
@@ -83,6 +83,8 @@ class Question:
         self.correct_answer = correct_answer
         self.keywords = keywords or []
         self.points = points
+        self.sql = sql or ""
+        self.description = description if description is not None else question
         # department_ids가 None이거나 단일 문자열이면 리스트로 변환
         if department_ids is None:
             self.department_ids = []
@@ -110,7 +112,9 @@ class Question:
             "category": self.category,
             "type": self.type,
             "difficulty": self.difficulty,
-            "question": self.question,
+            "description": getattr(self, 'description', self.question),
+            "sql": getattr(self, 'sql', ""),
+            "question": self.question,  # 하위 호환
             "points": self.points,
             "department_ids": self.department_ids,
         }
@@ -130,12 +134,14 @@ class Question:
             category=q.get('category'),
             type=q.get('type'),
             difficulty=q.get('difficulty'),
-            question=q.get('question'),
+            question=q.get('question', q.get('description', "")),
             options=q.get('options'),
             correct_answer=q.get('correct_answer'),
             keywords=q.get('keywords'),
             points=q.get('points'),
-            department_ids=q.get('department_ids')
+            department_ids=q.get('department_ids'),
+            sql=q.get('sql', ""),
+            description=q.get('description', None)
         )
 
 class TestResult:

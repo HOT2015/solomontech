@@ -59,11 +59,15 @@
                     <div class="question-card" id="question_{{ question.id }}">
                         <h5 class="mb-3">
                             <span class="badge bg-primary me-2">{{ loop.index }}</span>
-                            {{ question.question }}
+                            {{ question.description }}
                             <span class="badge bg-secondary ms-2">{{ question.category }}</span>
                             <span class="badge bg-info ms-1">{{ question.difficulty }}</span>
                         </h5>
-                        
+                        {% if question.sql %}
+                        <div class="question-sql mb-2">
+                            <pre><code class="language-sql">{{ question.sql }}</code></pre>
+                        </div>
+                        {% endif %}
                         {% if question.type == "객관식" %}
                         <div class="options-container">
                             {% for option in question.options %}

@@ -5,6 +5,8 @@
       "category": "Java",
       "type": "객관식",
       "difficulty": "초급",
+      "description": "Java에서 반복문이 아닌 것은 무엇인가요?",
+      "sql": "",
       "question": "Java에서 반복문이 아닌 것은 무엇인가요?",
       "points": 10,
       "department_ids": [
@@ -23,6 +25,8 @@
       "category": "Database",
       "type": "객관식",
       "difficulty": "초급",
+      "description": "SQL에서 데이터를 조회할 때 사용하는 명령어는?",
+      "sql": "",
       "question": "SQL에서 데이터를 조회할 때 사용하는 명령어는?",
       "points": 10,
       "department_ids": [
@@ -41,6 +45,8 @@
       "category": "Database",
       "type": "객관식",
       "difficulty": "초급",
+      "description": "SQL에서 조건을 지정할 때 사용하는 절은?",
+      "sql": "",
       "question": "SQL에서 조건을 지정할 때 사용하는 절은?",
       "points": 10,
       "department_ids": [
@@ -59,6 +65,8 @@
       "category": "Database",
       "type": "객관식",
       "difficulty": "초급",
+      "description": "SQL에서 결과를 정렬할 때 사용하는 절은?",
+      "sql": "",
       "question": "SQL에서 결과를 정렬할 때 사용하는 절은?",
       "points": 10,
       "department_ids": [
@@ -77,6 +85,8 @@
       "category": "Database",
       "type": "객관식",
       "difficulty": "초급",
+      "description": "SQL에서 집계 함수가 아닌 것은?",
+      "sql": "",
       "question": "SQL에서 집계 함수가 아닌 것은?",
       "points": 10,
       "department_ids": [
@@ -95,6 +105,8 @@
       "category": "Database",
       "type": "객관식",
       "difficulty": "초급",
+      "description": "SQL에서 중복된 데이터를 제거할 때 사용하는 키워드는?",
+      "sql": "",
       "question": "SQL에서 중복된 데이터를 제거할 때 사용하는 키워드는?",
       "points": 10,
       "department_ids": [
@@ -113,6 +125,8 @@
       "category": "Database",
       "type": "객관식",
       "difficulty": "중급",
+      "description": "SQL에서 인덱스의 주요 목적은?",
+      "sql": "",
       "question": "SQL에서 인덱스의 주요 목적은?",
       "points": 10,
       "department_ids": [
@@ -131,6 +145,8 @@
       "category": "Java",
       "type": "객관식",
       "difficulty": "중급",
+      "description": "Java에서 예외(Exception)를 처리하는 키워드는?",
+      "sql": "",
       "question": "Java에서 예외(Exception)를 처리하는 키워드는?",
       "points": 10,
       "department_ids": [
@@ -145,10 +161,33 @@
       "correct_answer": "try"
     },
     {
+      "id": "db_mc_groupby_having_01",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "중급",
+      "description": "employees 테이블에서 각 부서(department_id)별 평균 급여를 계산하고, 그 평균 급여가 $8,000를 초과하는 부서의 정보만 조회하려고 합니다. 아래 쿼리의 빈칸 ①, ②에 들어갈 키워드로 가장 적절한 것은 무엇일까요?",
+      "sql": "SELECT\n    department_id,\n    AVG(salary) AS avg_salary\nFROM\n    employees\n[ ① ]\n    department_id\n[ ② ]\n    AVG(salary) > 8000;",
+      "question": "employees 테이블에서 각 부서(department_id)별 평균 급여를 계산하고, 그 평균 급여가 $8,000를 초과하는 부서의 정보만 조회하려고 합니다. 아래 쿼리의 빈칸 ①, ②에 들어갈 키워드로 가장 적절한 것은 무엇일까요?",
+      "points": 10,
+      "department_ids": [
+        "dept_card",
+        "dept_1"
+      ],
+      "options": [
+        "WHERE, HAVING",
+        "GROUP BY, WHERE",
+        "GROUP BY, HAVING",
+        "WHERE, GROUP BY"
+      ],
+      "correct_answer": "GROUP BY, HAVING"
+    },
+    {
       "id": "sdk_mc_01",
       "category": "Mobile",
       "type": "객관식",
       "difficulty": "중급",
+      "description": "모바일 애플리케이션 라이브러리(SDK)를 개발할 때, 일반 앱 개발 대비 특수하게 고려할 사항이 아닌 것은?",
+      "sql": "",
       "question": "모바일 애플리케이션 라이브러리(SDK)를 개발할 때, 일반 앱 개발 대비 특수하게 고려할 사항이 아닌 것은?",
       "points": 10,
       "department_ids": [
@@ -167,6 +206,8 @@
       "category": "Flutter",
       "type": "객관식",
       "difficulty": "중급",
+      "description": "Flutter의 상태관리 라이브러리 GetX의 특징에 대한 설명으로 올바르지 않은 것은?",
+      "sql": "",
       "question": "Flutter의 상태관리 라이브러리 GetX의 특징에 대한 설명으로 올바르지 않은 것은?",
       "points": 10,
       "department_ids": [
@@ -185,6 +226,8 @@
       "category": "Streaming",
       "type": "객관식",
       "difficulty": "중급",
+      "description": "실시간 영상/음성 스트리밍 서비스에서 지연 시간(Latency)이 증가하는 현상의 주된 기술적 원인으로 가장 가능성이 높은 것은?",
+      "sql": "",
       "question": "실시간 영상/음성 스트리밍 서비스에서 지연 시간(Latency)이 증가하는 현상의 주된 기술적 원인으로 가장 가능성이 높은 것은?",
       "points": 10,
       "department_ids": [
@@ -203,6 +246,8 @@
       "category": "Software Engineering",
       "type": "객관식",
       "difficulty": "중급",
+      "description": "기존 코드와 유사한 신규 기능을 개발할 때 코드 중복이 발생할 경우, 유지보수성을 높이기 위한 가장 이상적인 설계 원칙은?",
+      "sql": "",
       "question": "기존 코드와 유사한 신규 기능을 개발할 때 코드 중복이 발생할 경우, 유지보수성을 높이기 위한 가장 이상적인 설계 원칙은?",
       "points": 10,
       "department_ids": [
@@ -217,22 +262,44 @@
       "correct_answer": "공통 로직을 별도의 함수나 클래스로 추출(Extract)하여 양쪽에서 재사용하도록 리팩토링한다."
     },
     {
-      "id": "db_mc_groupby_having_01",
+      "id": "db_mc_in_operator_01",
       "category": "Database",
       "type": "객관식",
       "difficulty": "중급",
-      "question": "employees 테이블에서 각 부서(department_id)별 평균 급여를 계산하고, 그 평균 급여가 $8,000를 초과하는 부서의 정보만 조회하려고 합니다.<br><br>아래 쿼리의 빈칸 ①, ②에 들어갈 키워드로 가장 적절한 것은 무엇일까요?<br><br><pre>SELECT\n    department_id,\n    AVG(salary) AS avg_salary\nFROM\n    employees\n[ ① ]\n    department_id\n[ ② ]\n    AVG(salary) > 8000;</pre>",
+      "description": "employees 테이블에서 'Sales' 또는 'Marketing' 부서에 속한 모든 직원의 정보를 조회하려고 합니다. 서브쿼리를 사용하여 departments 테이블에서 해당 부서의 ID를 가져왔습니다. 다음 쿼리의 빈칸에 들어갈 가장 적절한 연산자는 무엇일까요?",
+      "sql": "SELECT\n    employee_id,\n    first_name,\n    salary\nFROM\n    employees\nWHERE\n    department_id [   ] (SELECT department_id FROM departments WHERE department_name IN ('Sales', 'Marketing'));",
+      "question": "employees 테이블에서 'Sales' 또는 'Marketing' 부서에 속한 모든 직원의 정보를 조회하려고 합니다. 서브쿼리를 사용하여 departments 테이블에서 해당 부서의 ID를 가져왔습니다. 다음 쿼리의 빈칸에 들어갈 가장 적절한 연산자는 무엇일까요?",
       "points": 10,
       "department_ids": [
-        "dept_card"
+        "dept_1"
       ],
       "options": [
-        "WHERE, HAVING",
-        "GROUP BY, WHERE",
-        "GROUP BY, HAVING",
-        "WHERE, GROUP BY"
+        "=",
+        "LIKE",
+        "BETWEEN",
+        "IN"
       ],
-      "correct_answer": "GROUP BY, HAVING"
+      "correct_answer": "IN"
+    },
+    {
+      "id": "db_mc_case_when_salary_grade_01",
+      "category": "Database",
+      "type": "객관식",
+      "difficulty": "중급",
+      "description": "employees 테이블의 직원들을 급여(salary)에 따라 'High', 'Medium', 'Low' 세 등급으로 분류하려고 합니다. $10,000 이상은 'High', $5,000 이상 $10,000 미만은 'Medium', 그 외는 'Low'로 표시합니다. 다음 쿼리의 빈칸에 들어갈 가장 적절한 키워드는 무엇일까요?",
+      "sql": "SELECT\n    first_name,\n    salary,\n    [   ]\n        WHEN salary >= 10000 THEN 'High'\n        WHEN salary >= 5000 THEN 'Medium'\n        ELSE 'Low'\n    END AS salary_grade\nFROM\n    employees;",
+      "question": "employees 테이블의 직원들을 급여(salary)에 따라 'High', 'Medium', 'Low' 세 등급으로 분류하려고 합니다. $10,000 이상은 'High', $5,000 이상 $10,000 미만은 'Medium', 그 외는 'Low'로 표시합니다. 다음 쿼리의 빈칸에 들어갈 가장 적절한 키워드는 무엇일까요?",
+      "points": 10,
+      "department_ids": [
+        "dept_1"
+      ],
+      "options": [
+        "CASE",
+        "IF",
+        "DECODE",
+        "CONVERT"
+      ],
+      "correct_answer": "CASE"
     }
   ],
   "problem_solving_questions": []

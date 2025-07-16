@@ -178,8 +178,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 return a.question.localeCompare(b.question);
             });
         }
-        matchedDiv.innerHTML = matched.length ? matched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="match-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="match-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><span class='badge bg-info ms-1'>${q.difficulty}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭된 문제가 없습니다.</div>';
-        unmatchedDiv.innerHTML = unmatched.length ? unmatched.map(q => `<div class="form-check mb-1"><input class="form-check-input" type="checkbox" id="unmatch-${q.id}" data-qid="${q.id}"><label class="form-check-label" for="unmatch-${q.id}"><b>[${q.category}]</b> ${q.question}<span class="badge bg-secondary ms-1">${q.type}</span><span class='badge bg-info ms-1'>${q.difficulty}</span><br>${q.type === '객관식' && Array.isArray(q.options) ? q.options.map((opt, idx) => `<div class='${opt === q.correct_answer ? 'bg-success text-white px-2 rounded d-inline-block' : ''}'>${String.fromCharCode(65+idx)}. ${opt}</div>`).join('') : ''}${q.type === '주관식' && q.correct_answer ? `<div class='mt-1 text-success'>정답 예시:</div><pre class='bg-light p-2 border rounded mt-1' style='overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-width:100%'>${q.correct_answer}</pre>` : ''}</label></div>`).join('') : '<div class="text-muted">매칭되지 않은 문제가 없습니다.</div>';
+        if (matched.length) {
+            matchedDiv.innerHTML = matched.map(q => `
+                <div class="question-item d-flex align-items-start gap-2">
+                    <input type="checkbox" data-qid="${q.id}" />
+                    <div>
+                        <div><strong>${q.description || q.question}</strong></div>
+                        ${q.sql ? `<div class='question-sql mb-1' style='overflow-x:auto;word-break:break-all;'><pre><code class='language-sql'>${q.sql}</code></pre></div>` : ''}
+                        ${q.type === '객관식' && Array.isArray(q.options) ? `<div class='question-options mb-1'>${q.options.map((opt, idx) => `<div>${idx + 1}. ${opt}</div>`).join('')}<div class='text-success mt-1'><strong>정답:</strong> ${q.correct_answer}</div></div>` : ''}
+                        <div class="small text-muted">${q.category} | ${q.type} | ${q.difficulty}</div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            matchedDiv.innerHTML = '<div class="text-muted">매칭된 문제가 없습니다.</div>';
+        }
+        if (unmatched.length) {
+            unmatchedDiv.innerHTML = unmatched.map(q => `
+                <div class="question-item bg-light border rounded mb-2 p-2 d-flex align-items-start gap-2">
+                    <input type="checkbox" data-qid="${q.id}" />
+                    <div style="width:100%">
+                        <div><strong>${q.description || q.question}</strong></div>
+                        ${q.sql ? `<div class='question-sql mb-1' style='overflow-x:auto;word-break:break-all;'><pre><code class='language-sql'>${q.sql}</code></pre></div>` : ''}
+                        ${q.type === '객관식' && Array.isArray(q.options) ? `<div class='question-options mb-1'>${q.options.map((opt, idx) => `<div>${idx + 1}. ${opt}</div>`).join('')}<div class='text-success mt-1'><strong>정답:</strong> ${q.correct_answer}</div></div>` : ''}
+                        <div class="small text-muted">${q.category} | ${q.type} | ${q.difficulty}</div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            unmatchedDiv.innerHTML = '<div class="text-muted">매칭되지 않은 문제가 없습니다.</div>';
+        }
         document.getElementById('matched-count').textContent = `(${matched.length}문제)`;
         document.getElementById('unmatched-count').textContent = `(${unmatched.length}문제)`;
         // 체크박스 선택 시 버튼 활성화

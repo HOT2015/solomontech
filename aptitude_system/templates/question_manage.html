@@ -77,7 +77,12 @@
                                             <input type="checkbox" class="form-check-input question-checkbox" value="{{ question.id }}">
                                         </div>
                                         <div class="col">
-                                            <h6 class="card-title">{{ question.question }}</h6>
+                                            <h6 class="card-title">{{ question.description or question.question }}</h6>
+                                            {% if question.sql %}
+                                            <div class="question-sql mb-2">
+                                                <pre><code class="language-sql">{{ question.sql }}</code></pre>
+                                            </div>
+                                            {% endif %}
                                             <div class="question-meta">
                                                 <span class="badge bg-primary">{{ question.category }}</span>
                                                 <span class="badge bg-secondary">{{ question.type }}</span>
@@ -146,7 +151,12 @@
                                             <input type="checkbox" class="form-check-input question-checkbox" value="{{ question.id }}">
                                         </div>
                                         <div class="col">
-                                            <h6 class="card-title">{{ question.question }}</h6>
+                                            <h6 class="card-title">{{ question.description or question.question }}</h6>
+                                            {% if question.sql %}
+                                            <div class="question-sql mb-2">
+                                                <pre><code class="language-sql">{{ question.sql }}</code></pre>
+                                            </div>
+                                            {% endif %}
                                             <div class="question-meta">
                                                 <span class="badge bg-primary">{{ question.category }}</span>
                                                 <span class="badge bg-secondary">{{ question.type }}</span>
