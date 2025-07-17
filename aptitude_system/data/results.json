@@ -1,1 +1,25 @@
-[]
+[
+  {
+    "candidate_id": "87f1cc56-2eb2-43a4-aa23-bec5bee4c96f",
+    "test_date": "2025-07-17 13:43:58",
+    "answers": {
+      "java_mc_basic_05": "while",
+      "db_mc_basic_02": "SELECT",
+      "db_mc_basic_05": "DIFFERENT",
+      "java_mc_inter_01": "catch",
+      "db_mc_groupby_having_01": "GROUP BY, HAVING",
+      "sdk_mc_01": "SDK 자체의 용량(Binary Size)을 최소화하여 호스트 앱에 부담을 줄이는 것",
+      "flutter_getx_01": "적은 양의 상용구 코드(Boilerplate)로 높은 개발 생산성을 목표로 한다.",
+      "streaming_latency_01": "단말기의 오디오 하드웨어 드라이버와 앱의 비호환성 문제",
+      "code_duplication_01": "각 기능의 미세한 차이점을 상세히 주석으로 작성하고 두 개의 버전을 모두 유지한다.",
+      "db_mc_in_operator_01": "BETWEEN",
+      "db_mc_case_when_salary_grade_01": "IF"
+    },
+    "scores": {
+      "technical": 10,
+      "problem_solving": 0
+    },
+    "total_score": 10,
+    "rank": 1
+  }
+]
