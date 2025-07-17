@@ -1137,12 +1137,10 @@ def generate_candidate_questions(candidate_id):
 @app.route('/admin/openai_key', methods=['POST'])
 def set_openai_api_key():
     """
-    관리자 화면에서 OpenAI API Key를 저장하는 엔드포인트
+    관리자 화면에서 OpenAI API Key를 저장/삭제하는 엔드포인트
     """
     data = request.get_json()
     api_key = data.get('openai_api_key')
-    if not api_key:
-        return jsonify({'success': False, 'message': 'API Key가 비어 있습니다.'}), 400
     config_path = os.path.join(BASE_DIR, 'config.json')
     config = {}
     if os.path.exists(config_path):
@@ -1151,13 +1149,89 @@ def set_openai_api_key():
                 config = json.load(f)
             except Exception:
                 config = {}
-    config['OPENAI_API_KEY'] = api_key
+    if api_key:
+        config['OPENAI_API_KEY'] = api_key
+    else:
+        config.pop('OPENAI_API_KEY', None)
     try:
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'message': 'OpenAI API Key가 저장되었습니다.' if api_key else 'OpenAI API Key가 삭제되었습니다.'})
     except Exception as e:
-        return jsonify({'success': False, 'message': f'저장 실패: {str(e)}'}), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+# Gemini API Key 로드 함수
+
+def get_gemini_api_key():
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if api_key:
+        return api_key
+    config_path = os.path.join(BASE_DIR, 'config.json')
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            return config.get('GEMINI_API_KEY')
+    return None
+
+@app.route('/api/gemini_generate', methods=['POST'])
+def gemini_generate():
+    """Google Gemini API를 이용한 AI 문제 생성 엔드포인트"""
+    try:
+        data = request.get_json()
+        prompt = data.get('prompt', '').strip()
+        if not prompt:
+            return jsonify({'success': False, 'message': '프롬프트가 비어 있습니다.'}), 400
+        api_key = get_gemini_api_key()
+        if not api_key:
+            return jsonify({'success': False, 'message': 'Gemini API Key가 설정되어 있지 않습니다.'}), 400
+        # Gemini API 호출
+        url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent'
+        headers = {'Content-Type': 'application/json'}
+        payload = {
+            'contents': [
+                {'parts': [{'text': prompt}]}
+            ]
+        }
+        params = {'key': api_key}
+        response = requests.post(url, headers=headers, params=params, json=payload, timeout=120)
+        if response.status_code == 200:
+            result = response.json()
+            # Gemini 응답에서 텍스트 추출
+            try:
+                text = result['candidates'][0]['content']['parts'][0]['text']
+            except Exception:
+                text = str(result)
+            return jsonify({'success': True, 'result': text})
+        else:
+            return jsonify({'success': False, 'message': f'Gemini API 오류: {response.text}'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'서버 오류: {str(e)}'}), 500
+
+@app.route('/admin/gemini_key', methods=['POST'])
+def set_gemini_api_key():
+    """
+    관리자 화면에서 Gemini API Key를 저장/삭제하는 엔드포인트
+    """
+    data = request.get_json()
+    api_key = data.get('gemini_api_key')
+    config_path = os.path.join(BASE_DIR, 'config.json')
+    config = {}
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                config = json.load(f)
+            except Exception:
+                config = {}
+    if api_key:
+        config['GEMINI_API_KEY'] = api_key
+    else:
+        config.pop('GEMINI_API_KEY', None)
+    try:
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True, 'message': 'Gemini API Key가 저장되었습니다.' if api_key else 'Gemini API Key가 삭제되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 # 기존 문제 데이터 마이그레이션 스크립트 (단발성 실행)
 def migrate_questions_department_ids():
@@ -1199,6 +1273,24 @@ def api_ping():
     클라이언트에서 서버 연결 유지를 위해 주기적으로 호출하는 핑 엔드포인트
     """
     return 'pong', 200
+
+@app.route('/admin/api_keys', methods=['GET'])
+def get_api_keys():
+    config_path = os.path.join(BASE_DIR, 'config.json')
+    openai_api_key = ''
+    gemini_api_key = ''
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                config = json.load(f)
+                openai_api_key = config.get('OPENAI_API_KEY', '')
+                gemini_api_key = config.get('GEMINI_API_KEY', '')
+            except Exception:
+                pass
+    return jsonify({
+        'openai_api_key': openai_api_key,
+        'gemini_api_key': gemini_api_key
+    })
 
 if __name__ == "__main__":
     import os
